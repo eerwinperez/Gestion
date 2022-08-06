@@ -416,7 +416,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
             jTable1.getColumnModel().getColumn(0).setPreferredWidth(50);
             jTable1.getColumnModel().getColumn(1).setPreferredWidth(80);
             jTable1.getColumnModel().getColumn(2).setPreferredWidth(150);
-            jTable1.getColumnModel().getColumn(3).setPreferredWidth(400);
+            jTable1.getColumnModel().getColumn(3).setPreferredWidth(500);
             jTable1.getColumnModel().getColumn(5).setPreferredWidth(100);
             jTable1.getColumnModel().getColumn(6).setPreferredWidth(100);
             jTable1.getColumnModel().getColumn(7).setPreferredWidth(100);
@@ -618,7 +618,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                         .addGap(179, 179, 179))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(129, Short.MAX_VALUE))
+                        .addContainerGap(343, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
