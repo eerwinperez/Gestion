@@ -254,11 +254,23 @@ public class MetodosGenerales {
     }
 
     public static String ConvertirIntAMoneda(double dato) {
-        String result = "";
-        DecimalFormat objDF = new DecimalFormat("$ ###, ### .##");
-        result = objDF.format(dato);
 
-        return result;
+        if (dato >= 0.0) {
+            String result = "";
+            DecimalFormat objDF = new DecimalFormat("$ ###, ### .##");
+            result = objDF.format(dato);
+
+            return result;
+        } else {
+            
+            String result = "";
+            DecimalFormat objDF = new DecimalFormat("$ ###, ### .##");
+            result = objDF.format(dato);
+
+            return "- "+result;
+            
+        }
+
     }
 
     public static String ConvertirMonedaAInt(String numero) {
@@ -298,7 +310,7 @@ public class MetodosGenerales {
         String remitente = "infograficasjireh@gmail.com";
         String contraseña = "enuupmhmgcebjubf";
         String destinatario = "eperez.alean@gmail.com";
-        
+
         Properties p = new Properties();
         p.put("mail.smtp.host", "smtp.gmail.com");
         p.setProperty("mail.smtp.starttls.enable", "true");
@@ -316,18 +328,18 @@ public class MetodosGenerales {
         mensaje.setText(textoMensaje);
 
         Transport t = s.getTransport("smtp");
-        t.connect(remitente,contraseña);
+        t.connect(remitente, contraseña);
         t.sendMessage(mensaje, mensaje.getAllRecipients());
-        t.close();       
+        t.close();
 
     }
-    
+
     public static void enviarEmailConAdjunto(String asunto, String textoMensaje, String ruta, String nombreArchivo) throws AddressException, MessagingException {
 
         String remitente = "infograficasjireh@gmail.com";
         String contraseña = "enuupmhmgcebjubf";
         String destinatario = "eperez.alean@gmail.com";
-        
+
         Properties p = new Properties();
         p.put("mail.smtp.host", "smtp.gmail.com");
         p.setProperty("mail.smtp.starttls.enable", "true");
@@ -346,9 +358,7 @@ public class MetodosGenerales {
         MimeMultipart m = new MimeMultipart();
         m.addBodyPart(texto);
         m.addBodyPart(adjunto);
-        
-        
-        
+
         MimeMessage mensaje = new MimeMessage(s);
         mensaje.setFrom(new InternetAddress(remitente));
         mensaje.addRecipient(Message.RecipientType.TO, new InternetAddress(destinatario));
@@ -356,43 +366,41 @@ public class MetodosGenerales {
         mensaje.setContent(m);
 
         Transport t = s.getTransport("smtp");
-        t.connect(remitente,contraseña);
+        t.connect(remitente, contraseña);
         t.sendMessage(mensaje, mensaje.getAllRecipients());
-        t.close();       
+        t.close();
 
     }
-    
-    
-    public static void registrarHistorial(String usuario, String operacion){
-        
+
+    public static void registrarHistorial(String usuario, String operacion) {
+
         String consulta3 = "insert into desconexion (gestion, usuario, fecha) values (?, ?, ?)";
-            
-            Connection cn3 = Conexion.Conectar();
-            try {
-                PreparedStatement pst3 = cn3.prepareStatement(consulta3);
-                pst3.setString(1, operacion);
-                pst3.setString(2, usuario);
-                pst3.setString(3, new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
-                
-                pst3.executeUpdate();
-                cn3.close();
-                
-            } catch (SQLException exe) {
-                exe.printStackTrace();
-            }
-        
+
+        Connection cn3 = Conexion.Conectar();
+        try {
+            PreparedStatement pst3 = cn3.prepareStatement(consulta3);
+            pst3.setString(1, operacion);
+            pst3.setString(2, usuario);
+            pst3.setString(3, new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+
+            pst3.executeUpdate();
+            cn3.close();
+
+        } catch (SQLException exe) {
+            exe.printStackTrace();
+        }
+
     }
-    
-    public static String encriptarContraseña(String contraseña){
-        
-        return DigestUtils.md5Hex(contraseña).substring(0, 10);        
-        
+
+    public static String encriptarContraseña(String contraseña) {
+
+        return DigestUtils.md5Hex(contraseña).substring(0, 10);
+
     }
 
     public static void main(String[] args) {
 
-        System.out.println(encriptarContraseña("201403"));
-        
+        System.out.println(ConvertirIntAMoneda(-100d));
 
     }
 

@@ -960,7 +960,16 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                 jTextField_idpartida.setText(jTable1.getValueAt(fila, 0).toString());
                 jTextField_partida.setText(jTable1.getValueAt(fila, 2).toString());
                 jLabel_idpartida.setText(String.valueOf(fila));
-                jTextField_valoramodificar.setText(MetodosGenerales.ConvertirMonedaAInt(jTable1.getValueAt(fila, 3).toString()));
+                
+                char [] precio = jTable1.getValueAt(fila, 3).toString().toCharArray();
+                
+                if (precio[0]!='-') {
+                   jTextField_valoramodificar.setText(MetodosGenerales.ConvertirMonedaAInt(jTable1.getValueAt(fila, 3).toString()));                    
+                } else {
+                   String precio2= jTable1.getValueAt(fila, 3).toString().substring(2);
+                   jTextField_valoramodificar.setText(MetodosGenerales.ConvertirMonedaAInt(precio2));                   
+                }
+
                 jDateChooser_fecha.setDate(new SimpleDateFormat("yyyy-MM-dd").parse(jTable1.getValueAt(fila, 1).toString()));
                 jLabel_conceptpactual.setText(jTable1.getValueAt(fila, 2).toString());
                 jLabel_fechaactual.setText(jTable1.getValueAt(fila, 1).toString());
