@@ -306,7 +306,7 @@ public class InfomeVentas extends javax.swing.JFrame {
     public ArrayList<Object[]> ConsultarAbonosFacturas(String fechaDesde, String fechaHasta) {
 
         ArrayList<Object[]> listaAbonosFactura = new ArrayList<>();
-        String consulta = "select a.fecha, a.idAbono, v.clasificacion, concat('Factura ',a.factura) as factura, c.nombreCliente, a.abono, a.observaciones, a.registradoPor "
+        String consulta = "select distinct a.fecha, a.idAbono, v.clasificacion, concat('Factura ',a.factura) as factura, c.nombreCliente, a.abono, a.observaciones, a.registradoPor "
                 + "from abonosfacturas a join elementosfactura ef on a.factura=ef.factura\n"
                 + "join elementosremision er on ef.idElementoRemito=er.id\n"
                 + "join ventas v on er.idVenta=v.Idventa\n"
