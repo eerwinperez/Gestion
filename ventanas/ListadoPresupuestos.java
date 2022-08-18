@@ -422,10 +422,18 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
     public void RegistrarPresupuesto(String descripcion, String fechaIni, String fechaFin) {
 
         String consulta = "insert into presupuestos (fecha, descripcion, estado, fechaInicio, fechaFin, registradoPor) values (?, ?, ?, ?, ?, ?)";
-
+        String consulta2= "update presupuestos set estado='CERRADO'";
+        
         Connection cn = Conexion.Conectar();
 
         try {
+            
+            cn.setAutoCommit(false);
+            
+            PreparedStatement pst2 = cn.prepareStatement(consulta2);
+            pst2.executeUpdate();
+            
+            
             PreparedStatement pst = cn.prepareStatement(consulta);
             pst.setString(1, new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
             pst.setString(2, descripcion);
@@ -436,6 +444,9 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
 
             pst.executeUpdate();
 
+            cn.commit();
+            cn.close();
+            
             JOptionPane.showMessageDialog(this, "Presupuesto registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
 
         } catch (SQLIntegrityConstraintViolationException e) {
@@ -1659,47 +1670,52 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
 
             //Verificamos que la fecha inicio no se superior a la fecha fin
             if (jDateChooser_ini.getDate().before(jDateChooser_fin.getDate())) {
+                
+                            RegistrarPresupuesto(descripcion, fechaIni, fechaFin);
+                            limpiarCampos();
+                            limpiarTabla(modelo);
+                            llenarTabla();
 
                 //Contamos si hay algun presupuesto con estado abierto o pend de autorizacion
-                if (numeroFilas > 0) {
-                    for (int i = 0; i < numeroFilas; i++) {
-                        String estado = jTable_Presupuestos.getValueAt(i, 7).toString().trim();
-                        if (estado.equalsIgnoreCase("Abierto") || estado.equalsIgnoreCase("Pendiente Aut.")) {
-                            contadorEstado++;
-                            break;
-                        }
-                    }
-
-                    //Si no hay ningun presup abierto o pend de aut simplemente registramos el nuevo presup
-                    if (contadorEstado == 0) {
-                        int opcion = JOptionPane.showConfirmDialog(this, "¿Desea registrar el presupuesto " + descripcion + "?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
-                        if (opcion == 0) {
-                            RegistrarPresupuesto(descripcion, fechaIni, fechaFin);
-                            limpiarCampos();
-                            limpiarTabla(modelo);
-                            llenarTabla();
-                        }
-
-                    } else {
-                        int opcion = JOptionPane.showConfirmDialog(this, "Existen presupuestos abiertos, ¿desea crear un nuevo presupuesto?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
-                        if (opcion == 0) {
-                            RegistrarPresupuesto(descripcion, fechaIni, fechaFin);
-                            limpiarCampos();
-                            limpiarTabla(modelo);
-                            llenarTabla();
-                        }
-                    }
-
-                    //Si no hay ningun presup registrado, registramos el nuevo sin ninguna verificacion
-                } else {
-                    int opcion = JOptionPane.showConfirmDialog(this, "¿Desea registrar el presupuesto " + descripcion + "?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
-                    if (opcion == 0) {
-                        RegistrarPresupuesto(descripcion, fechaIni, fechaFin);
-                        limpiarCampos();
-                        limpiarTabla(modelo);
-                        llenarTabla();
-                    }
-                }
+//                if (numeroFilas > 0) {
+//                    for (int i = 0; i < numeroFilas; i++) {
+//                        String estado = jTable_Presupuestos.getValueAt(i, 7).toString().trim();
+//                        if (estado.equalsIgnoreCase("Abierto") || estado.equalsIgnoreCase("Pendiente Aut.")) {
+//                            contadorEstado++;
+//                            break;
+//                        }
+//                    }
+//
+//                    //Si no hay ningun presup abierto o pend de aut simplemente registramos el nuevo presup
+//                    if (contadorEstado == 0) {
+//                        int opcion = JOptionPane.showConfirmDialog(this, "¿Desea registrar el presupuesto " + descripcion + "?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
+//                        if (opcion == 0) {
+//                            RegistrarPresupuesto(descripcion, fechaIni, fechaFin);
+//                            limpiarCampos();
+//                            limpiarTabla(modelo);
+//                            llenarTabla();
+//                        }
+//
+//                    } else {
+//                        int opcion = JOptionPane.showConfirmDialog(this, "Existen presupuestos abiertos, ¿desea crear un nuevo presupuesto?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
+//                        if (opcion == 0) {
+//                            RegistrarPresupuesto(descripcion, fechaIni, fechaFin);
+//                            limpiarCampos();
+//                            limpiarTabla(modelo);
+//                            llenarTabla();
+//                        }
+//                    }
+//
+//                    //Si no hay ningun presup registrado, registramos el nuevo sin ninguna verificacion
+//                } else {
+//                    int opcion = JOptionPane.showConfirmDialog(this, "¿Desea registrar el presupuesto " + descripcion + "?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
+//                    if (opcion == 0) {
+//                        RegistrarPresupuesto(descripcion, fechaIni, fechaFin);
+//                        limpiarCampos();
+//                        limpiarTabla(modelo);
+//                        llenarTabla();
+//                    }
+//                }
 
             } else {
                 JOptionPane.showMessageDialog(this, "La fecha inicial no puede ser mayor a la fecha final", "Error", JOptionPane.ERROR_MESSAGE);
