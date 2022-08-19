@@ -305,7 +305,7 @@ public class Login extends javax.swing.JFrame {
                     //Veriricamos que el usuario se encuentre activo
                     String estado = VerificacionEstado(usuario);
 
-                    if (estado.equals("Activo")) {
+                    if (estado.equalsIgnoreCase("Activo")) {
 
                         //Verificamos el tipo de permiso que tiene
                         String permiso = ConsultarTipoPermiso(usuario);

@@ -28,8 +28,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.MessagingException;
 import javax.swing.ImageIcon;
 import javax.swing.WindowConstants;
@@ -70,6 +68,10 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
         if (permiso.equalsIgnoreCase("Asistente")) {
             InhabilitarParaAsistente();
         }
+        //Inhabilitamos los campos a los que no debe tener acceso los usuarios Administradores
+        if (permiso.equalsIgnoreCase("Administrador")) {
+            InhabilitarParaAdministrador();
+        }
 
     }
 
@@ -91,6 +93,10 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
         jButton_crear.setEnabled(false);
         jButton_cambiarEstado.setEnabled(false);
         jButton_cargarRubros.setEnabled(false);
+    }
+
+    public void InhabilitarParaAdministrador() {
+        jButton_cambiarEstado.setEnabled(false);
     }
 
     public void IniciarCaracteristicasGenerales() {
@@ -153,10 +159,10 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
             }
 
             jTable_Presupuestos.setModel(modelo);
-            
+
             TableRowSorter<TableModel> ordenador = new TableRowSorter<TableModel>(modelo);
             jTable_Presupuestos.setRowSorter(ordenador);
-            
+
             cn.close();
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error en leer la tabla de presupuestos ListadoPresupuestos llenarTabla()");
@@ -422,18 +428,17 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
     public void RegistrarPresupuesto(String descripcion, String fechaIni, String fechaFin) {
 
         String consulta = "insert into presupuestos (fecha, descripcion, estado, fechaInicio, fechaFin, registradoPor) values (?, ?, ?, ?, ?, ?)";
-        String consulta2= "update presupuestos set estado='CERRADO'";
-        
+        String consulta2 = "update presupuestos set estado='CERRADO'";
+
         Connection cn = Conexion.Conectar();
 
         try {
-            
+
             cn.setAutoCommit(false);
-            
+
             PreparedStatement pst2 = cn.prepareStatement(consulta2);
             pst2.executeUpdate();
-            
-            
+
             PreparedStatement pst = cn.prepareStatement(consulta);
             pst.setString(1, new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
             pst.setString(2, descripcion);
@@ -446,7 +451,7 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
 
             cn.commit();
             cn.close();
-            
+
             JOptionPane.showMessageDialog(this, "Presupuesto registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
 
         } catch (SQLIntegrityConstraintViolationException e) {
@@ -1199,6 +1204,58 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
         }
 
     }
+    
+    public Integer consultarMaxPresup(){
+        
+        String consulta = "select max(idPresupuesto) from presupuestos";
+        
+        Connection cn = Conexion.Conectar();
+        
+        try {
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            ResultSet rs = pst.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("max(idPresupuesto)");                
+            }
+            cn.close();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar el presupuesto anterior","Error",JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+        
+        
+        return null;
+    }
+    
+    public boolean comprobarGastos(){
+        
+        int presup= consultarMaxPresup();
+        
+        String consulta = "select * from gastospresupuestos where idPrespuesto=? and estado='Por Autorizar'"; 
+        Connection cn = Conexion.Conectar();
+        
+        try {
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setInt(1, presup);
+            
+            ResultSet rs = pst.executeQuery();
+            
+            if (rs.next()) {
+                return false;
+            }
+            
+            cn.close();
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al comprobar gastos","Error",JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+        
+        
+        
+        return true;
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -1670,52 +1727,32 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
 
             //Verificamos que la fecha inicio no se superior a la fecha fin
             if (jDateChooser_ini.getDate().before(jDateChooser_fin.getDate())) {
-                
-                            RegistrarPresupuesto(descripcion, fechaIni, fechaFin);
-                            limpiarCampos();
-                            limpiarTabla(modelo);
-                            llenarTabla();
 
-                //Contamos si hay algun presupuesto con estado abierto o pend de autorizacion
-//                if (numeroFilas > 0) {
-//                    for (int i = 0; i < numeroFilas; i++) {
-//                        String estado = jTable_Presupuestos.getValueAt(i, 7).toString().trim();
-//                        if (estado.equalsIgnoreCase("Abierto") || estado.equalsIgnoreCase("Pendiente Aut.")) {
-//                            contadorEstado++;
-//                            break;
-//                        }
-//                    }
-//
-//                    //Si no hay ningun presup abierto o pend de aut simplemente registramos el nuevo presup
-//                    if (contadorEstado == 0) {
-//                        int opcion = JOptionPane.showConfirmDialog(this, "¿Desea registrar el presupuesto " + descripcion + "?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
-//                        if (opcion == 0) {
-//                            RegistrarPresupuesto(descripcion, fechaIni, fechaFin);
-//                            limpiarCampos();
-//                            limpiarTabla(modelo);
-//                            llenarTabla();
-//                        }
-//
-//                    } else {
-//                        int opcion = JOptionPane.showConfirmDialog(this, "Existen presupuestos abiertos, ¿desea crear un nuevo presupuesto?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
-//                        if (opcion == 0) {
-//                            RegistrarPresupuesto(descripcion, fechaIni, fechaFin);
-//                            limpiarCampos();
-//                            limpiarTabla(modelo);
-//                            llenarTabla();
-//                        }
-//                    }
-//
-//                    //Si no hay ningun presup registrado, registramos el nuevo sin ninguna verificacion
-//                } else {
-//                    int opcion = JOptionPane.showConfirmDialog(this, "¿Desea registrar el presupuesto " + descripcion + "?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
-//                    if (opcion == 0) {
-//                        RegistrarPresupuesto(descripcion, fechaIni, fechaFin);
-//                        limpiarCampos();
-//                        limpiarTabla(modelo);
-//                        llenarTabla();
-//                    }
-//                }
+                //Verificamos si hay gastos pendientes por autorizar
+                if (comprobarGastos()) {
+
+                    double partidaUtilidad = consultarUtilidad();
+                    RegistrarPresupuesto(descripcion, fechaIni, fechaFin, partidaUtilidad);
+                    limpiarCampos();
+                    limpiarTabla(modelo);
+                    llenarTabla();
+
+                } else {
+                    int opcion = JOptionPane.showConfirmDialog(this, "Existen Gastos pendientes por autorizar. Se creará una partidad provisional por utilidad o perdida del presupuesto anterior.\n"
+                            + "La partida provisoria puede ser actualizada por el Gerente una vez haya autorizado todos los gastos.\n\n"
+                            + "¿Desea continuar?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
+
+                    if (opcion == 0) {
+
+                        double partidaUtilidad = consultarUtilidad();
+                        RegistrarPresupuesto(descripcion, fechaIni, fechaFin, partidaUtilidad);
+                        limpiarCampos();
+                        limpiarTabla(modelo);
+                        llenarTabla();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Presupuesto no registrado", "Informacion", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
 
             } else {
                 JOptionPane.showMessageDialog(this, "La fecha inicial no puede ser mayor a la fecha final", "Error", JOptionPane.ERROR_MESSAGE);

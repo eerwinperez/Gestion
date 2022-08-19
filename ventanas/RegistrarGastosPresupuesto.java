@@ -7,6 +7,7 @@ package ventanas;
 
 import clases.Conexion;
 import com.mysql.cj.jdbc.exceptions.MysqlDataTruncation;
+import java.awt.HeadlessException;
 import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableModel;
 import java.sql.Connection;
@@ -152,10 +153,10 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
             }
 
             jTable1.setModel(modelo);
-            
+
             TableRowSorter<TableModel> ordenador = new TableRowSorter<TableModel>(modelo);
             jTable1.setRowSorter(ordenador);
-            
+
             cn.close();
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error en leer los gastos del presupuesto. RegistrarGastosPresupuestos llenarTabla()");
@@ -349,6 +350,31 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Error al eliminar el gasto", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
+    }
+
+    public String consultarFechaFin(String idPresupuesto) {
+
+        String consulta = "select fechaFin from presupuestos where idPresupuesto=?";
+        Connection cn = Conexion.Conectar();
+
+        try {
+
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setString(1, idPresupuesto);
+
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("fechaFin");
+            }
+
+            cn.close();
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar la fecha fin del presupuesto", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return null;
     }
 
     /**
@@ -658,43 +684,73 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
             String fecha = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 
             if (!descripcionGasto.equals("") && !valor.equals("") && !factura.equals("")) {
+
                 int idConcepto = ConsultarIdConcepto(concepto);
                 int valorPresupuestado = ConsultarPresupuestado(this.idPresupuesto, idConcepto);
                 int SumaYaGastado = ConsultarSumaYaGastada(this.idPresupuesto, idConcepto);
-                //Verificamos que la suma a ingresar mas a suma ya gastada en ese concepto, no sea superior al 
-                //valor presupuestado
 
-                if (valorInt + SumaYaGastado <= valorPresupuestado) {
-                    //Si el valor a ingresar mas lo ya gastado no supera el presupuesto, se  solicita confirmacion y 
-                    //registra el gasto
-                    int confirmacion = JOptionPane.showConfirmDialog(this, "¿Desea registrar un gasto por $" + valorInt
-                            + " bajo la descripcion: " + descripcionGasto + " al concepto " + concepto + "?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
+                //Consultamos la fecha de cierre del presupuesto
+                try {
+                    String fechaFin = consultarFechaFin(this.idPresupuesto);
+                    Date fechaFinDate = new SimpleDateFormat("yyyy-MM-dd").parse(fechaFin);
+                    Date fechaGasto = new SimpleDateFormat("yyyy-MM-dd").parse(fecha);
 
-                    if (confirmacion == 0) {
-                        String estado = "Registrado";
-                        RegistrarGasto(this.idPresupuesto, fecha, idConcepto, factura, valorInt, descripcionGasto, estado, this.usuario);
-                        limpiarTabla(modelo);
-                        llenarTabla(idPresupuesto);
-                        limpiarCampos();
+                    if (fechaGasto.equals(fechaFinDate) || fechaGasto.before(fechaFinDate)) {
 
+                        //Verificamos que la suma a ingresar mas a suma ya gastada en ese concepto, no sea superior al 
+                        //valor presupuestado
+                        if (valorInt + SumaYaGastado <= valorPresupuestado) {
+                            //Si el valor a ingresar mas lo ya gastado no supera el presupuesto, se  solicita confirmacion y 
+                            //registra el gasto
+                            int confirmacion = JOptionPane.showConfirmDialog(this, "¿Desea registrar un gasto por $" + valorInt
+                                    + " bajo la descripcion: " + descripcionGasto + " al concepto " + concepto + "?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
+
+                            if (confirmacion == 0) {
+                                String estado = "Registrado";
+                                RegistrarGasto(this.idPresupuesto, fecha, idConcepto, factura, valorInt, descripcionGasto, estado, this.usuario);
+                                limpiarTabla(modelo);
+                                llenarTabla(idPresupuesto);
+                                limpiarCampos();
+
+                            }
+
+                        } else {
+                            //Sino Le preguntamos al usuario si quiere pedir autorizacion de la gerencia para registrar un gasto
+                            //que en suma supera el valor de los presupuestado
+                            int eleccion = JOptionPane.showConfirmDialog(this, "La suma de los gastos registrados por el concepto "
+                                    + concepto + " supera el valor presupuestado($" + valorPresupuestado + "). ¿Desea pedir autorizacion para cargar el gasto de $"
+                                    + valorInt + " a dicho concepto?", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+
+                            if (eleccion == 0) {
+
+                                String estado = "Por Autorizar";
+                                RegistrarGasto(this.idPresupuesto, fecha, idConcepto, factura, valorInt, descripcionGasto, estado, this.usuario);
+                                limpiarTabla(modelo);
+                                llenarTabla(idPresupuesto);
+                                limpiarCampos();
+                            }
+                        }
+
+                    } else {
+
+                        int opc = JOptionPane.showConfirmDialog(this, "Esta intentando registrar un gasto posterior a la fecha de cierre del presupuesto actual.\n"
+                                + "¿Desea registrar el gasto como 'Pendiente de autorizacion'?", "Confirmacion", JOptionPane.QUESTION_MESSAGE);
+
+                        if (opc == 0) {
+                            String estado = "Por Autorizar";
+                            RegistrarGasto(this.idPresupuesto, fecha, idConcepto, factura, valorInt, descripcionGasto, estado, this.usuario);
+                            limpiarTabla(modelo);
+                            llenarTabla(idPresupuesto);
+                            limpiarCampos();
+                        } else {
+                            JOptionPane.showMessageDialog(this, "Gasto no registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                        }
                     }
-
-                } else {
-                    //Sino Le preguntamos al usuario si quiere pedir autorizacion de la gerencia para registrar un gasto
-                    //que en suma supera el valor de los presupuestado
-                    int eleccion = JOptionPane.showConfirmDialog(this, "La suma de los gastos registrados por el concepto "
-                            + concepto + " supera el valor presupuestado($" + valorPresupuestado + "). ¿Desea pedir autorizacion para cargar el gasto de $"
-                            + valorInt + " a dicho concepto?", "Informacion", JOptionPane.INFORMATION_MESSAGE);
-
-                    if (eleccion == 0) {
-
-                        String estado = "Por Autorizar";
-                        RegistrarGasto(this.idPresupuesto, fecha, idConcepto, factura, valorInt, descripcionGasto, estado, this.usuario);
-                        limpiarTabla(modelo);
-                        llenarTabla(idPresupuesto);
-                        limpiarCampos();
-                    }
+                } catch (HeadlessException | ParseException e) {
+                    JOptionPane.showMessageDialog(this, "Error al parsear las fechas", "Error", JOptionPane.ERROR_MESSAGE);
+                    e.printStackTrace();
                 }
+
             } else {
                 JOptionPane.showMessageDialog(this, "Complete los campos descripcion y valor", "Informacion", JOptionPane.INFORMATION_MESSAGE);
             }
