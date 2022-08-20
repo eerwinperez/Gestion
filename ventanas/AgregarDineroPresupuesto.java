@@ -146,6 +146,40 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
         }
     }
 
+    public void RegistrarPartidaActualizada(String idPartida, String concepto, String valor, String usuario) {
+
+        String consulta = "update partidaspresupuestos set fecha=?, concepto=?, valor=?, registradoPor=? where id=?;";
+
+        try {
+
+            Connection cn = Conexion.Conectar();
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setString(1, new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+            pst.setString(2, concepto);
+            pst.setString(3, valor);
+            pst.setString(4, usuario);
+            pst.setString(5, idPartida);
+
+            pst.executeUpdate();
+            cn.close();
+            JOptionPane.showMessageDialog(this, "Partida actualizada por $" + valor + " asignada al presupuesto No. " + idPresupuesto
+                    + " - " + this.descripcion);
+
+        } catch (SQLIntegrityConstraintViolationException e) {
+            JOptionPane.showMessageDialog(this, "Error."
+                    + "\nEs posible que este intengando ingresar un registro pero falte completar algun dato obligatorio\n\n"
+                    + "No es posible ingresar partidas con el mismo nombre.", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        } catch (MysqlDataTruncation e) {
+            JOptionPane.showMessageDialog(this, "Error."
+                    + "\nAlgunos de los datos que intenta ingresar son demasiado extensos.\nIntente acortar los textos o no registrar numeros muy grande no logicos", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        } catch (HeadlessException | SQLException e) {
+            JOptionPane.showMessageDialog(this, "MySQLException\nError en registrar la partida. AgregarDineroPresupuesto RegistrarPartida()");
+            e.printStackTrace();
+        }
+    }
+
     public void limpiarTabla(DefaultTableModel model) {
         for (int i = 0; i < jTable1.getRowCount(); i++) {
             modelo.removeRow(i);
@@ -198,13 +232,16 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                 if (listado.isEmpty()) {
                     jButton2_utilidad.setBackground(Color.magenta);
                 } else {
-                    Object[] infoPresup = consultarPresupuestosCalculoUtilidad(Integer.parseInt(this.idPresupuesto), this.descripcion);
-                    String concepto = "UTILIDAD DEL PERIODO ANTERIOR " + infoPresup[0] + " " + infoPresup[1];
+                    //Object[] infoPresup = consultarPresupuestosCalculoUtilidad(Integer.parseInt(this.idPresupuesto), this.descripcion);
+                    //String concepto = "UTILIDAD DEL PERIODO ANTERIOR " + infoPresup[0] + " " + infoPresup[1];
                     for (Object[] info : listado) {
-                        if (!info[2].equals(concepto)) {
 
-                        } else {
+                        if (((String) info[2]).length() >= 12 && (((String) info[2]).substring(0, 13).equals("(PROVISIONAL)")
+                                || ((String) info[2]).substring(0, 20).equals("UTILIDAD DEL PERIODO"))) {
                             jButton2_utilidad.setEnabled(false);
+                            break;
+                        } else {
+
                         }
 
                     }
@@ -348,8 +385,8 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                     elemento[5] = partidas + ingresosEntradasDiarias + ingresosFacturas - gastos;
 
                     return elemento;
-                } else{
-                    JOptionPane.showMessageDialog(this, "La partida presupuestaria NO ha sido registrada.","Informacion", JOptionPane.WARNING_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "La partida presupuestaria NO ha sido registrada.", "Informacion", JOptionPane.WARNING_MESSAGE);
                 }
             }
 
@@ -386,39 +423,7 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
 
             return elemento;
 
-//            if (elemento[4].equals("CERRADO")) {
-//                int opcion = JOptionPane.showConfirmDialog(this, "¿Desea registrar la utilidad del presupuesto " + elemento[0] + " " + elemento[1] + "?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
-//                if (opcion == 0) {
-//
-//                    Double partidas = consultarPartidas((Integer) elemento[0]);
-//                    Double ingresosEntradasDiarias = consultarIngresosEntradasDiarias((String) elemento[2], (String) elemento[3]);
-//                    Double ingresosFacturas = consultarIngresosFacturas((String) elemento[2], (String) elemento[3]);
-//                    Double gastos = consultarGastos((Integer) elemento[0]);
-//
-//                    elemento[5] = partidas + ingresosEntradasDiarias + ingresosFacturas - gastos;
-//
-//                    return elemento;
-//                }
-//
-//            } else {
-//                int opcion1 = JOptionPane.showConfirmDialog(this, "El presupuesto " + elemento[0] + " " + elemento[1]
-//                        + " no se encuentra cerrado, esto sugiere que aun falta informacion por ingresar "
-//                        + "\ny la utilidad a calcular podría no ser real. "
-//                        + "\n¿Desea continuar con el registro de la utilidad en el presupuesto " + presupuesto + " " + nombrePresupuesto + "?", "Confirmacion", JOptionPane.WARNING_MESSAGE);
-//
-//                if (opcion1 == 0) {
-//
-//                    Double partidas = consultarPartidas((Integer) elemento[0]);
-//                    Double ingresosEntradasDiarias = consultarIngresosEntradasDiarias((String) elemento[2], (String) elemento[3]);
-//                    Double ingresosFacturas = consultarIngresosFacturas((String) elemento[2], (String) elemento[3]);
-//                    Double gastos = consultarGastos((Integer) elemento[0]);
-//
-//                    elemento[5] = partidas + ingresosEntradasDiarias + ingresosFacturas - gastos;
-//
-//                    return elemento;
-//                }
-//            }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error al leer los presupuestos", "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
@@ -554,6 +559,53 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
         }
 
         return true;
+    }
+
+    public String consultarIdPartidadUtilidad(int presupuesto) {
+
+        String consulta = "select min(id) from partidaspresupuestos where idPresupuesto=?";
+        Connection cn = Conexion.Conectar();
+
+        try {
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setInt(1, presupuesto);
+
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("min(id)");
+            }
+
+            cn.close();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar el Id de la partidad utilidad", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public String consultarNombrePartidaUtilida(String idPartidaUtilidad) {
+
+        String consulta = "select concepto from partidaspresupuestos where id=?";
+
+        Connection cn = Conexion.Conectar();
+        try {
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setString(1, idPartidaUtilidad);
+
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("concepto");
+            }
+            cn.close();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar el nombre de la partidad de Utilidad", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return null;
     }
 
     /**
@@ -830,7 +882,6 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                                 .addComponent(jButton_editar)
                                 .addComponent(jLabel_conceptpactual)
                                 .addComponent(jLabel_valoractual)))))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel_fechaactual))
         );
 
@@ -869,7 +920,7 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                 .addContainerGap(19, Short.MAX_VALUE))
         );
 
-        jButton2_utilidad.setText("Cargar Utilidad mes anterior");
+        jButton2_utilidad.setText("Recalcular Utilidad");
         jButton2_utilidad.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2_utilidadActionPerformed(evt);
@@ -954,20 +1005,21 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        jButton_editar.setEnabled(true);
         int fila = jTable1.getSelectedRow();
         if (fila != -1) {
             try {
                 jTextField_idpartida.setText(jTable1.getValueAt(fila, 0).toString());
                 jTextField_partida.setText(jTable1.getValueAt(fila, 2).toString());
                 jLabel_idpartida.setText(String.valueOf(fila));
-                
-                char [] precio = jTable1.getValueAt(fila, 3).toString().toCharArray();
-                
-                if (precio[0]!='-') {
-                   jTextField_valoramodificar.setText(MetodosGenerales.ConvertirMonedaAInt(jTable1.getValueAt(fila, 3).toString()));                    
+
+                char[] precio = jTable1.getValueAt(fila, 3).toString().toCharArray();
+
+                if (precio[0] != '-') {
+                    jTextField_valoramodificar.setText(MetodosGenerales.ConvertirMonedaAInt(jTable1.getValueAt(fila, 3).toString()));
                 } else {
-                   String precio2= jTable1.getValueAt(fila, 3).toString().substring(2);
-                   jTextField_valoramodificar.setText(MetodosGenerales.ConvertirMonedaAInt(precio2));                   
+                    String precio2 = jTable1.getValueAt(fila, 3).toString().substring(2);
+                    jTextField_valoramodificar.setText(MetodosGenerales.ConvertirMonedaAInt(precio2));
                 }
 
                 jDateChooser_fecha.setDate(new SimpleDateFormat("yyyy-MM-dd").parse(jTable1.getValueAt(fila, 1).toString()));
@@ -975,11 +1027,23 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                 jLabel_fechaactual.setText(jTable1.getValueAt(fila, 1).toString());
                 jLabel_valoractual.setText(jTable1.getValueAt(fila, 3).toString());
 
-                if (jTable1.getValueAt(fila, 2).toString().substring(0, 29).equalsIgnoreCase("UTILIDAD DEL PERIODO ANTERIOR")) {
-                    jTextField_partida.setEnabled(false);
+                //((String) info[2]).length() >= 12 && (((String) info[2]).substring(0, 13).equals("(PROVISIONAL)")
+                                //|| ((String) info[2]).substring(0, 20).equals("UTILIDAD DEL PERIODO"))
+                
+                if (jTable1.getValueAt(fila, 2).toString().length()>=12 && 
+                        (jTable1.getValueAt(fila, 2).toString().substring(0, 13).equals("(PROVISIONAL)")) ||
+                        jTable1.getValueAt(fila, 2).toString().substring(0, 20).equals("UTILIDAD DEL PERIODO")) {
+                    jButton_editar.setEnabled(false);
                 } else {
-                    jTextField_partida.setEnabled(true);
+                    jButton_editar.setEnabled(true);
                 }
+                
+                
+//                if (jTable1.getValueAt(fila, 2).toString().substring(0, 29).equalsIgnoreCase("UTILIDAD DEL PERIODO ANTERIOR")) {
+//                    jTextField_partida.setEnabled(false);
+//                } else {
+//                    jTextField_partida.setEnabled(true);
+//                }
             } catch (StringIndexOutOfBoundsException e) {
                 jTextField_partida.setEnabled(true);
             } catch (Exception e) {
@@ -1161,86 +1225,23 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
         boolean comprobacion = comprobarGastos(presupuesto);
         Object[] info = consultarPresupuestos(presupuesto, nombrePresupuesto);
 
+        String idPartidaUtilidad = consultarIdPartidadUtilidad(presupuesto);
+        String nombrePartidaUtilidad = consultarNombrePartidaUtilida(idPartidaUtilidad);
+
         if (comprobacion) {
 
-            if (info != null) {
-                String concepto = "UTILIDAD DEL PERIODO ANTERIOR " + info[0] + " " + info[1];
-                RegistrarPartida(String.valueOf(presupuesto), concepto, String.valueOf((Double) info[5]), this.usuario);
-                limpiarCampos();
-                limpiarTabla(modelo);
-                llenarTabla();
-            } else {
-                JOptionPane.showMessageDialog(this, "Partida no registrada", "Informacion", JOptionPane.INFORMATION_MESSAGE);
-            }
+            String concepto = "UTILIDAD DEL PERIODO ANTERIOR " + info[0] + " " + info[1];
+            RegistrarPartidaActualizada(idPartidaUtilidad, concepto, String.valueOf((Double) info[5]), this.usuario);
+            limpiarCampos();
+            limpiarTabla(modelo);
+            llenarTabla();
+
         } else {
 
-            JOptionPane.showMessageDialog(this, "No es posible registrar la utilidad ya que el presupuesto anterior " + info[0] + " " + info[1] + ""
+            JOptionPane.showMessageDialog(this, "No es posible recalcular la utilidad ya que el presupuesto anterior " + info[0] + " " + info[1] + ""
                     + " tiene gastos no autorizados.");
         }
 
-//        int filas = jTable1.getRowCount();
-//
-//        if (filas > 0) {
-//
-//            for (int i = 0; i < filas; i++) {
-//                if (jTable1.getValueAt(i, 2).toString().length() >= 29 && jTable1.getValueAt(i, 2).toString().substring(0, 29).equalsIgnoreCase("UTILIDAD DEL PERIODO ANTERIOR")) {
-//                    JOptionPane.showMessageDialog(this, "La utilidad del periodo anterior ya ha sido cargada como partida de este presupuesto", "Informacion", JOptionPane.INFORMATION_MESSAGE);
-//                    break;
-//                } else {
-//
-//                    if (i == filas - 1) {
-//                        int presupuesto = Integer.parseInt(jTextField_id.getText().trim());
-//                        String nombrePresupuesto = jTextField_descripcion.getText().trim();
-//
-//                        boolean comprobacion = comprobarGastos(presupuesto);
-//                        Object[] info = consultarPresupuestos(presupuesto, nombrePresupuesto);
-//
-//                        if (comprobacion) {
-//
-//                            if (info != null) {
-//                                String concepto = "UTILIDAD DEL PERIODO ANTERIOR " + info[0] + " " + info[1];
-//                                RegistrarPartida(String.valueOf(presupuesto), concepto, String.valueOf((Double) info[5]), this.usuario);
-//                                limpiarCampos();
-//                                limpiarTabla(modelo);
-//                                llenarTabla();
-//                            } else {
-//                                JOptionPane.showMessageDialog(this, "Partida no registrada", "Informacion", JOptionPane.INFORMATION_MESSAGE);
-//                            }
-//                        } else {
-//
-//                            JOptionPane.showMessageDialog(this, "No es posible registrar la utilidad ya que el presupuesto anterior " + info[0] + " " + info[1] + ""
-//                                    + " tiene gastos no autorizados.");
-//                        }
-//                    }
-//
-//                }
-//            }
-//
-//        } else {
-//            int presupuesto = Integer.parseInt(jTextField_id.getText().trim());
-//            String nombrePresupuesto = jTextField_descripcion.getText().trim();
-//
-//            boolean comprobacion = comprobarGastos(presupuesto);
-//            Object[] info = consultarPresupuestos(presupuesto, nombrePresupuesto);
-//
-//            if (comprobacion) {
-//
-//                if (info != null) {
-//                    String concepto = "UTILIDAD DEL PERIODO ANTERIOR " + info[0] + " " + info[1];
-//                    RegistrarPartida(String.valueOf(presupuesto), concepto, String.valueOf((Double) info[5]), this.usuario);
-//                    limpiarCampos();
-//                    limpiarTabla(modelo);
-//                    llenarTabla();
-//                } else {
-//                    JOptionPane.showMessageDialog(this, "Partida no registrada", "Informacion", JOptionPane.INFORMATION_MESSAGE);
-//                }
-//            } else {
-//
-//                JOptionPane.showMessageDialog(this, "No es posible registrar la utilidad ya que el presupuesto anterior " + info[0] + " " + info[1] + ""
-//                        + " tiene gastos no autorizados.");
-//            }
-//
-//        }
     }//GEN-LAST:event_jButton2_utilidadActionPerformed
 
     /**
