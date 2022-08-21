@@ -932,12 +932,6 @@ public class InfomeVentas extends javax.swing.JFrame {
             LinkedHashSet<Integer> abonos = new LinkedHashSet<>();
             ArrayList<Object[]> listado = new ArrayList<>();
 
-//            String consulta = "select f.idFactura, f.registradoPor, f.monto, f.fechaFactura, c.nombreCliente, ifnull(f.monto-sum(a.abono), f.monto) as saldo, f.condiciondePago\n"
-//                    + "from facturas f left join abonosfacturas a on f.idFactura=a.factura and a.estado='Activo'\n"
-//                    + "join clientes c on f.idCliente=c.idCliente\n"
-//                    + "where f.estado='Activo' and fechaFactura between ? and ?\n"
-//                    + "group by f.idFactura\n"
-//                    + "having saldo >0";
             String consulta = "select f.idFactura, f.registradoPor, f.monto, f.fechaFactura, c.nombreCliente, ifnull(f.monto-sum(a.abono), f.monto) as saldo, f.condiciondePago\n"
                     + "from facturas f left join abonosfacturas a on f.idFactura=a.factura and a.estado='Activo'\n"
                     + "join clientes c on f.idCliente=c.idCliente\n"
@@ -980,7 +974,6 @@ public class InfomeVentas extends javax.swing.JFrame {
                         facturas += String.valueOf((Integer) listado.get(i)[0]) + ")";
                     }
                 }
-
 
                 String consultaAbonos = "SELECT idAbono, factura, abono, fecha, observaciones, "
                         + "registradoPor from abonosfacturas where factura in " + facturas + " and estado='Activo' order by idAbono asc";
@@ -1042,7 +1035,6 @@ public class InfomeVentas extends javax.swing.JFrame {
                     }
                 }
 
-
                 String consultaAbonos = "select a.idAbono, a.idVenta, c.nombreCliente, a.fecha, a.valor, a.observaciones, a.registradoPor\n"
                         + "from abonos a left join ventas v on a.idVenta=v.idVenta\n"
                         + "left join clientes c on v.idCliente=c.idCliente\n"
@@ -1066,12 +1058,6 @@ public class InfomeVentas extends javax.swing.JFrame {
                 LinkedHashSet<Integer> abonos = new LinkedHashSet<>();
                 ArrayList<Object[]> listado = new ArrayList<>();
 
-//                String consulta = "select f.idFactura, f.registradoPor, f.monto, f.fechaFactura, c.nombreCliente, ifnull(f.monto-sum(a.abono), f.monto) as saldo, f.condiciondePago\n"
-//                        + "from facturas f left join abonosfacturas a on f.idFactura=a.factura and a.estado='Activo'\n"
-//                        + "join clientes c on f.idCliente=c.idCliente and c.nombreCliente=?  \n"
-//                        + "where f.estado='Activo' and fechaFactura between ? and ?\n"
-//                        + "group by f.idFactura\n"
-//                        + "having saldo >0";
                 String consulta = "select f.idFactura, f.registradoPor, f.monto, f.fechaFactura, c.nombreCliente, ifnull(f.monto-sum(a.abono), f.monto) as saldo, f.condiciondePago\n"
                         + "from facturas f left join abonosfacturas a on f.idFactura=a.factura and a.estado='Activo'\n"
                         + "join clientes c on f.idCliente=c.idCliente and c.nombreCliente=?  \n"
@@ -1115,7 +1101,6 @@ public class InfomeVentas extends javax.swing.JFrame {
                             facturas += String.valueOf((Integer) listado.get(i)[0]) + ")";
                         }
                     }
-
 
                     String consultaAbonos = "SELECT idAbono, factura, abono, fecha, observaciones, "
                             + "registradoPor from abonosfacturas where factura in " + facturas + " and estado='Activo' order by idAbono asc";
@@ -1627,10 +1612,8 @@ public class InfomeVentas extends javax.swing.JFrame {
             if (cliente.equalsIgnoreCase("EMPRESAS")) {
                 texto = "ESTADO DE CUENTA - TODAS LAS EMPRESAS DESDE " + fechaDesde + " HASTA " + fechaHasta;
             } else {
-                texto = "ESTADO CUENTA - EMPRESA: " + cliente + " DESDE " + fechaDesde + " HASTA "+ fechaHasta;
+                texto = "ESTADO CUENTA - EMPRESA: " + cliente + " DESDE " + fechaDesde + " HASTA " + fechaHasta;
             }
-            
-            
 
             XSSFRow fila0 = hoja.getRow(0);
             XSSFCell celda00 = fila0.getCell(0);

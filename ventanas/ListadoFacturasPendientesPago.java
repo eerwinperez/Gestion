@@ -162,6 +162,7 @@ public class ListadoFacturasPendientesPago extends javax.swing.JFrame {
                     + "where f.estado='Activo'\n"
                     + "group by f.idFactura"
                     + " having saldo >0";
+            
             ArrayList<Object[]> listado = new ArrayList<>();
 
             Connection cn = Conexion.Conectar();
@@ -178,7 +179,7 @@ public class ListadoFacturasPendientesPago extends javax.swing.JFrame {
                     facturas[2] = rs.getString("c.nombreCliente");
                     facturas[3] = rs.getDouble("f.monto");
                     facturas[4] = "";
-                    facturas[5] = "";
+                    facturas[5] = rs.getDouble("saldo");
                     facturas[6] = rs.getString("f.condiciondePago");
                     facturas[7] = rs.getString("f.registradoPor");
 
@@ -213,7 +214,7 @@ public class ListadoFacturasPendientesPago extends javax.swing.JFrame {
                     facturas[2] = rs.getString("c.nombreCliente");
                     facturas[3] = rs.getDouble("f.monto");
                     facturas[4] = "";
-                    facturas[5] = "";
+                    facturas[5] = rs.getDouble("saldo");
                     facturas[6] = rs.getString("f.condiciondePago");
                     facturas[7] = rs.getString("f.registradoPor");
 
@@ -521,7 +522,7 @@ public class ListadoFacturasPendientesPago extends javax.swing.JFrame {
                             celda.setCellValue("");
                             break;
                         case 5:
-                            celda.setCellValue("");
+                            celda.setCellValue((Double) elemento[i]);
                             break;
                         case 6:
                             celda.setCellValue("Cond. Pago: " + (String) elemento[i]);
