@@ -318,6 +318,9 @@ public class RegistroAbonos extends javax.swing.JFrame {
                             celda.setCellValue((Double) elemento[i]);
                             totalVenta += (Double) elemento[i];
                             break;
+                        case 6:
+                            celda.setCellValue((Double) elemento[6]);
+                            break;                          
                         case 7:
                             celda.setCellValue((String) elemento[5]);
                             break;
@@ -446,14 +449,15 @@ public class RegistroAbonos extends javax.swing.JFrame {
                 ResultSet rs = pst.executeQuery();
 
                 while (rs.next()) {
-                    Object[] nuevo = new Object[6];
+                    Object[] nuevo = new Object[7];
                     nuevo[0] = rs.getDouble("v.Idventa");
                     nuevo[1] = rs.getDate("v.FechaventaSistema");
                     nuevo[2] = cliente;
                     nuevo[3] = rs.getString("descripcion");
                     nuevo[4] = rs.getDouble("v.precio");
                     nuevo[5] = rs.getString("v.registradoPor");
-
+                    nuevo[6] = rs.getDouble("saldo");
+                    
                     listado.add(nuevo);
 
                 }
@@ -483,13 +487,14 @@ public class RegistroAbonos extends javax.swing.JFrame {
 
                 while (rs.next()) {
 
-                    Object[] nuevo = new Object[6];
+                    Object[] nuevo = new Object[7];
                     nuevo[0] = rs.getDouble("v.Idventa");
                     nuevo[1] = rs.getDate("v.FechaventaSistema");
                     nuevo[2] = rs.getString("c.nombreCliente");
                     nuevo[3] = rs.getString("descripcion");
                     nuevo[4] = rs.getDouble("v.precio");
                     nuevo[5] = rs.getString("v.registradoPor");
+                    nuevo[6] = rs.getDouble("saldo");
 
                     listado.add(nuevo);
 

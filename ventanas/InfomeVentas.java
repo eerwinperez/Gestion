@@ -998,15 +998,6 @@ public class InfomeVentas extends javax.swing.JFrame {
 
             LinkedHashSet<Integer> abonos = new LinkedHashSet<>();
             ArrayList<Object[]> listado = new ArrayList<>();
-//
-//            String consulta = "select v.Idventa, v.precio, v.precio, c.nombreCliente, v.registradoPor, v.FechaventaSistema, v.Idcliente, v.Cantidad, concat(v.descripcionTrabajo,' - ' ,v.tamaño) as descripcion, v.FechaventaSistema,\n"
-//                    + "ifnull(v.precio - SUM(a.valor), v.precio) as saldo\n"
-//                    + "from ventas v left join abonos a on v.Idventa=a.idVenta and a.estado='Activo'\n"
-//                    + "left join clientes c on v.Idcliente=c.idCliente\n"
-//                    + "where v.tipoVenta='Entradas diarias' and v.estado='Activo' and FechaventaSistema between ? and ? \n"
-//                    + "group by v.Idventa\n"
-//                    + "having saldo >0\n"
-//                    + "ORDER by v.Idventa";
 
             String consulta = "select v.Idventa, v.precio, v.precio, c.nombreCliente, v.registradoPor, v.FechaventaSistema, v.Idcliente, v.Cantidad, concat(v.descripcionTrabajo,' - ' ,v.tamaño) as descripcion, v.FechaventaSistema,\n"
                     + "ifnull(v.precio - SUM(a.valor), v.precio) as saldo\n"
