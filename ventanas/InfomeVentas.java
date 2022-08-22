@@ -956,7 +956,7 @@ public class InfomeVentas extends javax.swing.JFrame {
                     facturas[2] = rs.getString("c.nombreCliente");
                     facturas[3] = rs.getDouble("f.monto");
                     facturas[4] = "";
-                    facturas[5] = "";
+                    facturas[5] = rs.getDouble("saldo");
                     facturas[6] = rs.getString("f.condiciondePago");
                     facturas[7] = rs.getString("f.registradoPor");
 
@@ -1011,13 +1011,14 @@ public class InfomeVentas extends javax.swing.JFrame {
 
                 while (rs.next()) {
 
-                    Object[] nuevo = new Object[6];
+                    Object[] nuevo = new Object[7];
                     nuevo[0] = rs.getInt("v.Idventa");
                     nuevo[1] = rs.getDate("v.FechaventaSistema");
                     nuevo[2] = rs.getString("nombreCliente");
                     nuevo[3] = rs.getString("descripcion");
                     nuevo[4] = rs.getDouble("v.precio");
                     nuevo[5] = rs.getString("v.registradoPor");
+                    nuevo[6] = rs.getDouble("saldo");
 
                     listado.add(nuevo);
 
@@ -1083,7 +1084,7 @@ public class InfomeVentas extends javax.swing.JFrame {
                         facturas[2] = rs.getString("c.nombreCliente");
                         facturas[3] = rs.getDouble("f.monto");
                         facturas[4] = "";
-                        facturas[5] = "";
+                        facturas[5] = rs.getDouble("saldo");
                         facturas[6] = rs.getString("f.condiciondePago");
                         facturas[7] = rs.getString("f.registradoPor");
 
@@ -1140,13 +1141,14 @@ public class InfomeVentas extends javax.swing.JFrame {
 
                     while (rs.next()) {
 
-                        Object[] nuevo = new Object[6];
+                        Object[] nuevo = new Object[7];
                         nuevo[0] = rs.getInt("v.Idventa");
                         nuevo[1] = rs.getDate("v.FechaventaSistema");
                         nuevo[2] = rs.getString("nombreCliente");
                         nuevo[3] = rs.getString("descripcion");
                         nuevo[4] = rs.getDouble("v.precio");
                         nuevo[5] = rs.getString("v.registradoPor");
+                        nuevo[6] = rs.getDouble("saldo");
 
                         listado.add(nuevo);
 
@@ -1280,6 +1282,9 @@ public class InfomeVentas extends javax.swing.JFrame {
                         case 4:
                             celda.setCellValue((Double) elemento[i]);
                             totalVenta += (Double) elemento[i];
+                            break;
+                        case 6:
+                            celda.setCellValue((Double) elemento[i]);
                             break;
                         case 7:
                             celda.setCellValue((String) elemento[5]);
@@ -1659,7 +1664,7 @@ public class InfomeVentas extends javax.swing.JFrame {
                             celda.setCellValue("");
                             break;
                         case 5:
-                            celda.setCellValue("");
+                            celda.setCellValue((Double) elemento[i]);
                             break;
                         case 6:
                             celda.setCellValue("Cond. Pago: " + (String) elemento[i]);
