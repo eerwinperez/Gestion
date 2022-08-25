@@ -1923,7 +1923,7 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
 
 
                             double partidaUtilidad = sumaPartidas + sumaEE + sumaFacturas - sumaGastos;
-                            RegistrarPresupuesto(descripcion, fechaIni, fechaFin, partidaUtilidad, infoPresup, presupAnterior);
+                            RegistrarPresupuestoProvisional(descripcion, fechaIni, fechaFin, partidaUtilidad, infoPresup, presupAnterior);
                             limpiarCampos();
                             limpiarTabla(modelo);
                             llenarTabla();

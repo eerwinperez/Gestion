@@ -734,7 +734,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                     } else {
 
                         int opc = JOptionPane.showConfirmDialog(this, "Esta intentando registrar un gasto posterior a la fecha de cierre del presupuesto actual.\n"
-                                + "¿Desea registrar el gasto como 'Pendiente de autorizacion'?", "Confirmacion", JOptionPane.QUESTION_MESSAGE);
+                                + "¿Desea registrar el gasto como 'Pendiente de autorizacion'?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
 
                         if (opc == 0) {
                             String estado = "Por Autorizar";

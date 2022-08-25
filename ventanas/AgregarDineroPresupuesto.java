@@ -236,12 +236,12 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                     //String concepto = "UTILIDAD DEL PERIODO ANTERIOR " + infoPresup[0] + " " + infoPresup[1];
                     for (Object[] info : listado) {
 
-                        if (((String) info[2]).length() >= 12 && (((String) info[2]).substring(0, 13).equals("(PROVISIONAL)")
-                                || ((String) info[2]).substring(0, 20).equals("UTILIDAD DEL PERIODO"))) {
-                            jButton2_utilidad.setEnabled(false);
+                        if (((String) info[2]).length() >= 12 && ((String) info[2]).substring(0, 13).equals("(PROVISIONAL)")) {
+                            jButton2_utilidad.setEnabled(true);
+                            jButton2_utilidad.setBackground(Color.magenta);
                             break;
                         } else {
-
+                            jButton2_utilidad.setEnabled(false);
                         }
 
                     }
@@ -1034,8 +1034,10 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                         (jTable1.getValueAt(fila, 2).toString().substring(0, 13).equals("(PROVISIONAL)")) ||
                         jTable1.getValueAt(fila, 2).toString().substring(0, 20).equals("UTILIDAD DEL PERIODO")) {
                     jButton_editar.setEnabled(false);
+                    jButton_eliminar.setEnabled(false);
                 } else {
                     jButton_editar.setEnabled(true);
+                    jButton_eliminar.setEnabled(true);
                 }
                 
                 
