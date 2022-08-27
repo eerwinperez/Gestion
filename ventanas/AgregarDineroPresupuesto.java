@@ -1031,8 +1031,8 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                                 //|| ((String) info[2]).substring(0, 20).equals("UTILIDAD DEL PERIODO"))
                 
                 if (jTable1.getValueAt(fila, 2).toString().length()>=12 && 
-                        (jTable1.getValueAt(fila, 2).toString().substring(0, 13).equals("(PROVISIONAL)")) ||
-                        jTable1.getValueAt(fila, 2).toString().substring(0, 20).equals("UTILIDAD DEL PERIODO")) {
+                        ((jTable1.getValueAt(fila, 2).toString().substring(0, 13).equals("(PROVISIONAL)")) ||
+                        jTable1.getValueAt(fila, 2).toString().substring(0, 20).equals("UTILIDAD DEL PERIODO"))) {
                     jButton_editar.setEnabled(false);
                     jButton_eliminar.setEnabled(false);
                 } else {

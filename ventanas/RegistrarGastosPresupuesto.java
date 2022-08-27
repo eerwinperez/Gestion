@@ -793,7 +793,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                     JOptionPane.showMessageDialog(this, "No es posible autorizar gastos ya registrados", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
-                JOptionPane.showMessageDialog(this, "Indique un comentario sobre la autorizacion", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Indique un comentario sobre la autorizacion", "Informacion", JOptionPane.WARNING_MESSAGE);
             }
 
         } else {
