@@ -27,6 +27,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import javax.mail.MessagingException;
 import javax.swing.ImageIcon;
@@ -103,6 +104,21 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
         SettearTabla();
         InhabilitarCampos();
         llenarTabla();
+        llenarCampos();
+    }
+    
+    public void llenarCampos(){
+        
+        Date fechaInicioNuevoPresup = consultarFechaProximoPresupuesto(consultarMaxPresup());
+//        jDateChooser_ini.setDate(fechaInicioNuevoPresup.);
+        Calendar c = Calendar.getInstance();
+        c.setTime(fechaInicioNuevoPresup);
+        c.add(Calendar.DATE, 1);
+        fechaInicioNuevoPresup = c.getTime();
+        
+        //System.out.println("La fecha es "+fechaInicioNuevoPresup);
+        jDateChooser_ini.setDate(fechaInicioNuevoPresup);
+        jDateChooser_ini.setEnabled(false);
     }
 
     public void InhabilitarCampos() {
@@ -133,6 +149,8 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
     }
 
     public void llenarTabla() {
+        
+                
         modelo = (DefaultTableModel) jTable_Presupuestos.getModel();
 
         String consulta = "select  v.idPresupuesto, v.fecha, v.descripcion, v.fechaInicio, v.fechaFin, v.presup, ifnull(sum(g.valor), 0) as gastos, v.estado, v.registradoPor\n"
@@ -1285,6 +1303,32 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
         return null;
     }
 
+    public Date consultarFechaProximoPresupuesto(int presup) {
+
+        String consulta = "select fechaFin from presupuestos where idPresupuesto=?";
+
+        Connection cn = Conexion.Conectar();
+
+        try {
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setInt(1, presup);
+
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                return rs.getDate("fechaFin");
+            }
+
+            cn.close();
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar la fecha inicial del nuevo presupuesto", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     public boolean comprobarGastos() {
 
         int presup = consultarMaxPresup();
@@ -1881,8 +1925,8 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
         String[] infoPresup = consultarDatosPresupuesto(String.valueOf(presupAnterior));
         //Fecha inicio y fin posicion 1 y 2 respectivamente   
 
-        System.out.println(infoPresup[1]);
-        System.out.println(infoPresup[2]);
+//        System.out.println(infoPresup[1]);
+//        System.out.println(infoPresup[2]);
 
         try {
             String fechaIni = new SimpleDateFormat("yyyy-MM-dd").format(jDateChooser_ini.getDate());
@@ -1902,12 +1946,12 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
                         double sumaFacturas = consultarSumaIngresosFacturas(infoPresup[1], infoPresup[2]);
                         double sumaGastos = consultarSumaGastos(presupAnterior);
 
-
                         double partidaUtilidad = sumaPartidas + sumaEE + sumaFacturas - sumaGastos;
                         RegistrarPresupuesto(descripcion, fechaIni, fechaFin, partidaUtilidad, infoPresup, presupAnterior);
                         limpiarCampos();
                         limpiarTabla(modelo);
                         llenarTabla();
+                        llenarCampos();
 
                     } else {
                         int opcion = JOptionPane.showConfirmDialog(this, "Existen Gastos pendientes por autorizar. Se creará una partidad provisional por utilidad o perdida del presupuesto anterior.\n"
@@ -1915,18 +1959,18 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
                                 + "¿Desea continuar?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
 
                         if (opcion == 0) {
-                            
+
                             double sumaPartidas = consultarSumaPartidas(presupAnterior);
                             double sumaEE = consultarSumaIngresosEntradasDiarias(infoPresup[1], infoPresup[2]);
                             double sumaFacturas = consultarSumaIngresosFacturas(infoPresup[1], infoPresup[2]);
                             double sumaGastos = consultarSumaGastos(presupAnterior);
-
 
                             double partidaUtilidad = sumaPartidas + sumaEE + sumaFacturas - sumaGastos;
                             RegistrarPresupuestoProvisional(descripcion, fechaIni, fechaFin, partidaUtilidad, infoPresup, presupAnterior);
                             limpiarCampos();
                             limpiarTabla(modelo);
                             llenarTabla();
+                            llenarCampos();
 
                         } else {
                             JOptionPane.showMessageDialog(this, "Presupuesto no registrado", "Informacion", JOptionPane.ERROR_MESSAGE);

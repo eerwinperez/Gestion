@@ -1173,7 +1173,7 @@ public class InfomeVentas extends javax.swing.JFrame {
 
                     ArrayList<Object[]> listadoAbonos = consultarAbonosEntradasDiarias(consultaAbonos);
 
-                    ImprimirInformeDeudaClienteEntradasDiarias(listado, listadoAbonos, cliente, fechaDesde, fechaHasta);
+                    ImprimirInformeDeudaEntradasDiarias(listado, listadoAbonos, cliente, fechaDesde, fechaHasta);
 
                 } catch (SQLException e) {
                     JOptionPane.showMessageDialog(this, "Error al generar el estado de cuenta de todas las empresas", "Error", JOptionPane.ERROR_MESSAGE);

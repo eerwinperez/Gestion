@@ -195,6 +195,8 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
         jLabel_conceptpactual.setText("");
         jLabel_fechaactual.setText("");
         jLabel_valoractual.setText("");
+        jTextField_concepto.setText("");
+        jTextField_valor.setText("");
 
     }
 
