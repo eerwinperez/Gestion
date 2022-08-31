@@ -789,6 +789,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                     limpiarCampos();
                     limpiarTabla(modelo);
                     llenarTabla(idPresupuesto);
+                    
                 } else {
                     JOptionPane.showMessageDialog(this, "No es posible autorizar gastos ya registrados", "Error", JOptionPane.ERROR_MESSAGE);
                 }

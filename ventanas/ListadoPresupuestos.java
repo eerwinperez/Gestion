@@ -29,6 +29,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.MessagingException;
 import javax.swing.ImageIcon;
 import javax.swing.WindowConstants;
@@ -106,16 +108,16 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
         llenarTabla();
         llenarCampos();
     }
-    
-    public void llenarCampos(){
-        
+
+    public void llenarCampos() {
+
         Date fechaInicioNuevoPresup = consultarFechaProximoPresupuesto(consultarMaxPresup());
 //        jDateChooser_ini.setDate(fechaInicioNuevoPresup.);
         Calendar c = Calendar.getInstance();
         c.setTime(fechaInicioNuevoPresup);
         c.add(Calendar.DATE, 1);
         fechaInicioNuevoPresup = c.getTime();
-        
+
         //System.out.println("La fecha es "+fechaInicioNuevoPresup);
         jDateChooser_ini.setDate(fechaInicioNuevoPresup);
         jDateChooser_ini.setEnabled(false);
@@ -149,8 +151,7 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
     }
 
     public void llenarTabla() {
-        
-                
+
         modelo = (DefaultTableModel) jTable_Presupuestos.getModel();
 
         String consulta = "select  v.idPresupuesto, v.fecha, v.descripcion, v.fechaInicio, v.fechaFin, v.presup, ifnull(sum(g.valor), 0) as gastos, v.estado, v.registradoPor\n"
@@ -733,7 +734,7 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
     public ArrayList<Object[]> consultarIngresosEntradasDiarias(String fechaInicial, String fechaFinal) {
 
         ArrayList<Object[]> listado = new ArrayList<>();
-        String consulta = "select a.idAbono, a.idVenta, v.descripcionTrabajo, a.fecha, c.nombreCliente, a.observaciones, a.valor, "
+        String consulta = "select a.idAbono, a.idVenta, v.FechaventaSistema, v.descripcionTrabajo, a.fecha, c.nombreCliente, a.observaciones, a.valor, "
                 + "a.registradoPor    \n"
                 + "from abonos a join ventas v on a.idVenta=v.Idventa and a.estado='Activo'\n"
                 + "join clientes c on v.Idcliente=c.idCliente\n"
@@ -750,7 +751,7 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
 
             while (rs.next()) {
 
-                Object[] elemento = new Object[8];
+                Object[] elemento = new Object[10];
 
                 elemento[0] = rs.getDouble("a.idAbono");
                 elemento[1] = rs.getDouble("a.idVenta");
@@ -760,6 +761,13 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
                 elemento[5] = rs.getString("a.observaciones");
                 elemento[6] = rs.getDouble("a.valor");
                 elemento[7] = rs.getString("a.registradoPor");
+                elemento[9] = rs.getDate("v.FechaventaSistema");
+
+                if (((Date) elemento[9]).before(new SimpleDateFormat("yyyy-MM-dd").parse(fechaInicial))) {
+                    elemento[8] = "Ingresos meses anteriores";
+                } else {
+                    elemento[8] = "";
+                }
 
                 listado.add(elemento);
             }
@@ -771,6 +779,9 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error al leer los ingresos por entradas diarias", "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
+        } catch (ParseException ex) {
+            JOptionPane.showMessageDialog(this, "Error al parsear la fecha", "Error", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
 
         return null;
@@ -780,7 +791,7 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
 
         ArrayList<Object[]> listado = new ArrayList<>();
         String consulta = "select a.idAbono, a.factura, a.fecha, c.nombreCliente, a.observaciones, a.abono, "
-                + "a.registradoPor\n"
+                + "a.registradoPor, f.fechaFactura \n"
                 + "from abonosfacturas a left join facturas f on a.factura=f.idFactura and a.estado='Activo'\n"
                 + "left join clientes c on f.idCliente=c.idCliente\n"
                 + "where a.fecha between ? and ?";
@@ -795,7 +806,7 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
 
             while (rs.next()) {
 
-                Object[] elemento = new Object[7];
+                Object[] elemento = new Object[9];
 
                 elemento[0] = rs.getDouble("a.idAbono");
                 elemento[1] = rs.getDouble("a.factura");
@@ -804,7 +815,14 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
                 elemento[4] = rs.getString("a.observaciones");
                 elemento[5] = rs.getDouble("a.abono");
                 elemento[6] = rs.getString("a.registradoPor");
-
+                elemento[8] = rs.getDate("f.fechaFactura");
+                
+                if (((Date)elemento[8]).before(new SimpleDateFormat("yyyy-MM-dd").parse(fechaInicial))) {
+                    elemento[7]="Ingresos meses anteriores";
+                } else {
+                    elemento[7]="";
+                }
+                
                 listado.add(elemento);
             }
 
@@ -815,6 +833,9 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error al leer los ingresos por entradas diarias", "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
+        } catch (ParseException ex) {
+            JOptionPane.showMessageDialog(this, "Error al parsear la fecha inicial de ingresos facturas","Error",JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
 
         return null;
@@ -1137,8 +1158,10 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
             celda41Hoja4.setCellValue(this.usuario);
 
             //Completamos la tabla de datos
-            int filaInicialHoja4 = 7;
+            int filaInicialHoja4 = 9;
             int sumaAbonos = 0;
+            double ingresosMes = 0;
+            double ingresosMesesAnteriores = 0;
 
             for (Object[] entrada : ingresosEntradasDiarias) {
                 XSSFRow primeraFilaTablaHoja4 = hoja4.getRow(filaInicialHoja4);
@@ -1171,15 +1194,35 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
                         case 7:
                             primeraCeldaTablaHoja4.setCellValue((String) entrada[j]);
                             break;
+                        case 8:
+                            primeraCeldaTablaHoja4.setCellValue((String) entrada[j]);
+
+                            if (((String) entrada[j]).equals("Ingresos meses anteriores")) {
+                                ingresosMesesAnteriores += (Double) entrada[6];
+                            } else {
+                                ingresosMes += (Double) entrada[6];
+                            }
+
+                            break;
 
                     }
                 }
                 filaInicialHoja4++;
             }
 
-            //Ponemos el valor total de abonos en la hoja 4
+            //Ponemos el valor de abonos del mes en  la hoja 4
             XSSFCell celda46Hoja4 = fila4Hoja4.getCell(6);
-            celda46Hoja4.setCellValue(totalEntradasDiarias);
+            celda46Hoja4.setCellValue(ingresosMes);
+
+            //Ponemos el valor de abonos de meses anteriores en  la hoja 4
+            XSSFRow fila5Hoja4 = hoja4.getRow(5);
+            XSSFCell celda56Hoja4 = fila5Hoja4.getCell(6);
+            celda56Hoja4.setCellValue(ingresosMesesAnteriores);
+
+            //Ponemos el valor total de abonos del mes en  la hoja 4
+            XSSFRow fila6Hoja4 = hoja4.getRow(6);
+            XSSFCell celda66Hoja4 = fila6Hoja4.getCell(6);
+            celda66Hoja4.setCellValue(totalEntradasDiarias);
 
             //Ponemos el valor total de abono en la hoja 1 (resumen)
             XSSFRow fila8Hoja1 = hoja.getRow(8);
@@ -1202,8 +1245,10 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
             celda41Hoja5.setCellValue(this.usuario);
 
             //Llenamos los datos de la tabla abonos facturas
-            int filaInicialAbonosFactura = 7;
+            int filaInicialAbonosFactura = 9;
             int sumaAbonosFacturas = 0;
+            double ingresosMesFacturas = 0;
+            double ingresosMesesAnterioresFacturas = 0;
 
             for (Object[] factura : ingresosFacturas) {
                 XSSFRow primeraFilaTablaHoja5 = hoja5.getRow(filaInicialAbonosFactura);
@@ -1232,6 +1277,16 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
                             break;
                         case 6:
                             primeraCeldaTablaHoja5.setCellValue((String) factura[j]);
+                            break;                            
+                        case 7:
+                            primeraCeldaTablaHoja5.setCellValue((String) factura[j]);
+                            
+                            if (((String) factura[j]).equals("Ingresos meses anteriores")) {
+                                ingresosMesesAnterioresFacturas+=(Double) factura[5];
+                            } else {
+                                ingresosMesFacturas+=(Double) factura[5];
+                            }
+                                                        
                             break;
 
                     }
@@ -1239,9 +1294,20 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
                 filaInicialAbonosFactura++;
             }
 
-            //Total de abonos empresas
+            //ingresos del mes
             XSSFCell celda45Hoja5 = fila4Hoja5.getCell(5);
-            celda45Hoja5.setCellValue(totalFacturas);
+            celda45Hoja5.setCellValue(ingresosMesFacturas);
+            
+            //Ingresos de meses anteriores
+            XSSFRow fila5Hoja5 = hoja5.getRow(5);
+            XSSFCell celda55Hoja5 = fila5Hoja5.getCell(5);
+            celda55Hoja5.setCellValue(ingresosMesesAnterioresFacturas);
+            
+            //total ingresos del periodo
+            
+            XSSFRow fila6Hoja5 = hoja5.getRow(6);
+            XSSFCell celda65Hoja5 = fila6Hoja5.getCell(5);
+            celda65Hoja5.setCellValue(totalFacturas);
 
             //Ponemos el valor total de abonos por factura en el resumen de la hoja 1
             XSSFRow fila9Hoja1 = hoja.getRow(9);
@@ -1927,7 +1993,6 @@ public class ListadoPresupuestos extends javax.swing.JFrame {
 
 //        System.out.println(infoPresup[1]);
 //        System.out.println(infoPresup[2]);
-
         try {
             String fechaIni = new SimpleDateFormat("yyyy-MM-dd").format(jDateChooser_ini.getDate());
             String fechaFin = new SimpleDateFormat("yyyy-MM-dd").format(jDateChooser_fin.getDate());
