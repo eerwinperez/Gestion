@@ -908,18 +908,22 @@ public class DetallePedido extends javax.swing.JFrame {
                     if (tipoVenta.equalsIgnoreCase("Empresas")) {
 
                         boolean comprobacion = comprobarSiFactura(this.idVenta);
-                        
+
                         if (comprobacion) {
 
                             if (precioDouble >= montoActual) {
-                                
+
                                 ActualizarPedido(vendedor, idCliente, cantidadDouble, descripcion, tipoTrabajo, unitario, precioDouble, tamaño, fecha, colorTinta, numeroInicial,
                                         numeroFinal, acabado, original, copia1, copia2, copia3, observaciones, this.usuario, this.idVenta, cantidadActual, montoActual, cliente, clasificacion);
-                            
+                                dispose();
+                                new ListadoVentas(this.usuario, this.permiso).setVisible(true);
+
                             } else {
                                 if (this.permiso.equalsIgnoreCase("Gerente")) {
                                     ActualizarPedido(vendedor, idCliente, cantidadDouble, descripcion, tipoTrabajo, unitario, precioDouble, tamaño, fecha, colorTinta, numeroInicial,
                                             numeroFinal, acabado, original, copia1, copia2, copia3, observaciones, this.usuario, this.idVenta, cantidadActual, montoActual, cliente, clasificacion);
+                                    dispose();
+                                    new ListadoVentas(this.usuario, this.permiso).setVisible(true);
                                 } else {
                                     JOptionPane.showMessageDialog(this, "No tiene permisos sufifientes para editar el monto de la venta a un valor menor al originalmente registrado", "Error", JOptionPane.ERROR_MESSAGE);
                                 }
@@ -945,7 +949,7 @@ public class DetallePedido extends javax.swing.JFrame {
                             if (precioDouble >= totalAbonos) {
 
                                 if (this.permiso.equalsIgnoreCase("Gerente")) {
-                                    
+
                                     ActualizarPedido(vendedor, idCliente, cantidadDouble, descripcion, tipoTrabajo, unitario, precioDouble, tamaño, fecha, colorTinta, numeroInicial,
                                             numeroFinal, acabado, original, copia1, copia2, copia3, observaciones, this.usuario, this.idVenta, cantidadActual, montoActual, cliente, clasificacion);
 

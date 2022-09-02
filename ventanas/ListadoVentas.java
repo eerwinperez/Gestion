@@ -118,7 +118,8 @@ public class ListadoVentas extends javax.swing.JFrame {
                 listado[2] = rs.getString("clientes.nombreCliente");
                 listado[3] = rs.getString("ventas.tipoVenta");
                 listado[4] = rs.getString("ventas.clasificacion");
-                listado[5] = rs.getString("ventas.descripcionTrabajo") + " - " + rs.getString("ventas.tamaño") + " - " + rs.getString("ventas.colorTinta");
+                listado[5] = rs.getString("ventas.descripcionTrabajo") + " - " + rs.getString("ventas.tamaño") + " - " + rs.getString("ventas.colorTinta")+
+                        " - " +rs.getString("ventas.papelOriginal");
                 listado[6] = rs.getString("ventas.Cantidad");
                 listado[7] = MetodosGenerales.ConvertirIntAMoneda(rs.getDouble("ventas.precio"));
                 listado[8] = rs.getString("ventas.observaciones");
