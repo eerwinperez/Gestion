@@ -29,8 +29,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.MessagingException;
 import javax.swing.ImageIcon;
 import javax.swing.WindowConstants;
@@ -45,7 +43,7 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
  *
  * @author erwin
  */
-public class ListadoPresupuestos extends javax.swing.JFrame {
+public final class ListadoPresupuestos extends javax.swing.JFrame {
 
     String usuario, permiso;
     DefaultTableModel modelo;

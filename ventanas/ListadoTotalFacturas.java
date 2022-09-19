@@ -113,7 +113,6 @@ public class ListadoTotalFacturas extends javax.swing.JFrame {
 //                + "join ventas v on er.idVenta=v.Idventa \n"
 //                + "join clientes c on v.Idcliente=c.idCliente"
 //                + " order by f.idFactura desc";
-
         String consulta = "select f.idFactura, f.fechaFactura, c.nombreCliente, f.monto, f.condiciondePago, f.estado\n"
                 + "from facturas f join clientes c on f.idCliente=c.idCliente\n"
                 + "order by f.idFactura desc";
@@ -353,7 +352,7 @@ public class ListadoTotalFacturas extends javax.swing.JFrame {
     }
 
     public ArrayList<Object[]> consultarElementosFactura(String numeroFactura) {
-        String consulta = "select er.idVenta, er.id, ef.cantidad, v.descripcionTrabajo, v.unitario, ef.cantidad*v.unitario as total \n"
+        String consulta = "select er.idVenta, er.id, ef.cantidad, v.colorTinta, v.descripcionTrabajo, v.papelOriginal, v.tamaño, v.unitario, ef.cantidad*v.unitario as total \n"
                 + "from elementosfactura ef join elementosremision er on ef.idElementoRemito=er.id \n"
                 + "join ventas v on er.idVenta=v.Idventa\n"
                 + "where ef.factura=?";
@@ -366,12 +365,19 @@ public class ListadoTotalFacturas extends javax.swing.JFrame {
 
             ResultSet rs = pst.executeQuery();
 
+//            listado[5] = rs.getString("ventas.descripcionTrabajo") + " - " + rs.getString("ventas.tamaño") + " - " + rs.getString("ventas.colorTinta")
+//                    + " - " + rs.getString("ventas.papelOriginal");
+
             while (rs.next()) {
                 Object[] elementos = new Object[6];
+
+                String papel = (rs.getString("v.papelOriginal").equalsIgnoreCase("No aplica")) ? "" : rs.getString("v.papelOriginal");
+
                 elementos[0] = rs.getDouble("er.idVenta");
                 elementos[1] = rs.getDouble("er.id");
                 elementos[2] = rs.getDouble("ef.cantidad");
-                elementos[3] = rs.getString("v.descripcionTrabajo");
+                elementos[3] = rs.getString("v.descripcionTrabajo")+" - "+rs.getString("v.tamaño")+
+                        " - "+rs.getString("v.colorTinta")+" - "+papel;
                 elementos[4] = rs.getDouble("v.unitario");
                 elementos[5] = rs.getDouble("total");
 

@@ -517,9 +517,9 @@ public class ListadoVentas extends javax.swing.JFrame {
             jTable_tablapedisos.getColumnModel().getColumn(0).setPreferredWidth(40);
             jTable_tablapedisos.getColumnModel().getColumn(1).setPreferredWidth(80);
             jTable_tablapedisos.getColumnModel().getColumn(2).setPreferredWidth(200);
-            jTable_tablapedisos.getColumnModel().getColumn(3).setPreferredWidth(90);
+            jTable_tablapedisos.getColumnModel().getColumn(3).setPreferredWidth(50);
             jTable_tablapedisos.getColumnModel().getColumn(4).setPreferredWidth(90);
-            jTable_tablapedisos.getColumnModel().getColumn(5).setPreferredWidth(200);
+            jTable_tablapedisos.getColumnModel().getColumn(5).setPreferredWidth(300);
             jTable_tablapedisos.getColumnModel().getColumn(6).setPreferredWidth(60);
             jTable_tablapedisos.getColumnModel().getColumn(7).setPreferredWidth(100);
             jTable_tablapedisos.getColumnModel().getColumn(8).setPreferredWidth(100);
