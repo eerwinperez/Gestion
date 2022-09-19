@@ -378,8 +378,7 @@ public class ListadoTotalFacturas extends javax.swing.JFrame {
                 elementos[0] = rs.getDouble("er.idVenta");
                 elementos[1] = rs.getDouble("er.id");
                 elementos[2] = rs.getDouble("ef.cantidad");
-                elementos[3] = rs.getString("v.descripcionTrabajo")+tamaño+
-                        color+papel;
+                elementos[3] = rs.getString("v.descripcionTrabajo")+tamaño+color+papel;
                 elementos[4] = rs.getDouble("v.unitario");
                 elementos[5] = rs.getDouble("total");
 
