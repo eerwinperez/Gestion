@@ -94,7 +94,6 @@ public class ListadoRemitos extends javax.swing.JFrame {
         //Al cerrar solo se cierra esta ventana, no las precedentes
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-
     }
 
     public void LlenarTabla() {
@@ -124,11 +123,10 @@ public class ListadoRemitos extends javax.swing.JFrame {
                 modelo.addRow(nuevo);
             }
             jTable1.setModel(modelo);
-            
+
             TableRowSorter<TableModel> ordenador = new TableRowSorter<TableModel>(modelo);
             jTable1.setRowSorter(ordenador);
-            
-            
+
             cn.close();
 
         } catch (SQLException e) {
@@ -165,9 +163,9 @@ public class ListadoRemitos extends javax.swing.JFrame {
             cn.commit();
             cn.close();
 
-            JOptionPane.showMessageDialog(this, "Remision eliminada","Informacion",JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Remision eliminada", "Informacion", JOptionPane.INFORMATION_MESSAGE);
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error al elimienar la remision ListadoRemitos EliminarRemito()\n" + e,"Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al elimienar la remision ListadoRemitos EliminarRemito()\n" + e, "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
     }
@@ -255,14 +253,14 @@ public class ListadoRemitos extends javax.swing.JFrame {
             FileOutputStream libro = new FileOutputStream(rutaAGuardar);
             wb.write(libro);
             libro.close();
-            JOptionPane.showMessageDialog(this, "Remision generada","Informacion",JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Remision generada", "Informacion", JOptionPane.INFORMATION_MESSAGE);
             MetodosGenerales.abrirArchivo(rutaAGuardar);
 
         } catch (FileNotFoundException ex) {
             JOptionPane.showMessageDialog(this, "No es posible crear la remision. Si tiene una remision con el mismo nombre abierto,"
-                    + " \ncierrelo e intente generarla nuevamente.","Error",JOptionPane.ERROR_MESSAGE);
+                    + " \ncierrelo e intente generarla nuevamente.", "Error", JOptionPane.ERROR_MESSAGE);
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Error al generar el informe","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al generar el informe", "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
 
@@ -353,23 +351,23 @@ public class ListadoRemitos extends javax.swing.JFrame {
         String consulta = "select ef.factura\n"
                 + "from elementosfactura ef join elementosremision er\n"
                 + "on er.id=ef.idElementoRemito and er.estado='Activo' and ef.estado='Activo' and er.idRemision=?";
-        
+
         Connection cn = Conexion.Conectar();
-        
+
         try {
             PreparedStatement pst = cn.prepareStatement(consulta);
             pst.setString(1, idRemito);
-            
+
             ResultSet rs = pst.executeQuery();
-            
+
             if (rs.next()) {
                 return false;
             }
             cn.close();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al buscar la factura asociada al remito","Error",JOptionPane.ERROR_MESSAGE);
-        }      
-        
+            JOptionPane.showMessageDialog(this, "Error al buscar la factura asociada al remito", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
         return true;
     }
 
@@ -399,7 +397,7 @@ public class ListadoRemitos extends javax.swing.JFrame {
             return datosCliente;
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error al consultar los datos del cliente","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al consultar los datos del cliente", "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
 
@@ -431,7 +429,7 @@ public class ListadoRemitos extends javax.swing.JFrame {
             return datosCliente;
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error al consultar los datos de la remision","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al consultar los datos de la remision", "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
 
@@ -442,7 +440,7 @@ public class ListadoRemitos extends javax.swing.JFrame {
 
         ArrayList<Object[]> listado = new ArrayList<>();
 
-        String consulta = "select e.idVenta, v.descripcionTrabajo, e.cantidad\n"
+        String consulta = "select e.idVenta, v.descripcionTrabajo, v.papelOriginal, v.tamaño, v.colorTinta, e.cantidad\n"
                 + "from elementosremision e join ventas v on e.idVenta=v.Idventa\n"
                 + "where e.idRemision=? and e.estado='Activo' ";
 
@@ -455,9 +453,13 @@ public class ListadoRemitos extends javax.swing.JFrame {
 
             while (rs.next()) {
 
+                String papel = (rs.getString("v.papelOriginal").equalsIgnoreCase("No aplica")) ? "" : " - " + rs.getString("v.papelOriginal");
+                String tamaño = (rs.getString("v.tamaño").equalsIgnoreCase("No aplica")) ? "" : " - " + rs.getString("v.tamaño");
+                String color = (rs.getString("v.colorTinta").equalsIgnoreCase("No aplica")) ? "" : " - " + rs.getString("v.colorTinta");
+
                 Object[] nuevo = new Object[3];
                 nuevo[0] = rs.getDouble("e.idVenta");
-                nuevo[1] = rs.getString("v.descripcionTrabajo");
+                nuevo[1] = rs.getString("v.descripcionTrabajo") + tamaño+ color + papel;;
                 nuevo[2] = rs.getDouble("e.cantidad");
 
                 listado.add(nuevo);
@@ -467,7 +469,7 @@ public class ListadoRemitos extends javax.swing.JFrame {
             return listado;
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al consultar los elementos de la remision","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al consultar los elementos de la remision", "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
 
@@ -640,7 +642,7 @@ public class ListadoRemitos extends javax.swing.JFrame {
             GenerarRemito(idRemito, datosCliente, datosRemision, elementosRemision);
             LimpiarCampos();
         } else {
-            JOptionPane.showMessageDialog(this, "Seleccione una remision para imprimir","Informacion",JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Seleccione una remision para imprimir", "Informacion", JOptionPane.INFORMATION_MESSAGE);
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -648,7 +650,7 @@ public class ListadoRemitos extends javax.swing.JFrame {
         //Verificamos que se haya seleccionado un remito
         String idRemito = jTextField_numeroRemito.getText().trim();
         if (!idRemito.equals("")) {
-            int opcion = JOptionPane.showConfirmDialog(this, "¿Desea elimiminar la remision?","Confirmacion",JOptionPane.INFORMATION_MESSAGE);
+            int opcion = JOptionPane.showConfirmDialog(this, "¿Desea elimiminar la remision?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
             if (opcion == 0) {
 
                 if (ComprobarFacturas(idRemito)) {
@@ -658,12 +660,12 @@ public class ListadoRemitos extends javax.swing.JFrame {
                     LimpiarCampos();
                 } else {
                     JOptionPane.showMessageDialog(this, "No es posible eliminar la remisión ya que el mismo tiene facturas asociadas.\n"
-                            + "Anule la factura antes de poder proceder","Error",JOptionPane.ERROR_MESSAGE);
+                            + "Anule la factura antes de poder proceder", "Error", JOptionPane.ERROR_MESSAGE);
                 }
 
             }
         } else {
-            JOptionPane.showMessageDialog(this, "Seleccione una remision para imprimir","Informacion",JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Seleccione una remision para imprimir", "Informacion", JOptionPane.INFORMATION_MESSAGE);
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 
