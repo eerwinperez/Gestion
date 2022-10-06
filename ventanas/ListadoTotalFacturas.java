@@ -371,9 +371,9 @@ public class ListadoTotalFacturas extends javax.swing.JFrame {
             while (rs.next()) {
                 Object[] elementos = new Object[6];
 
-                String papel = (rs.getString("v.papelOriginal").equalsIgnoreCase("No aplica")) ? "" :" - " +rs.getString("v.papelOriginal");
-                String tamaño = (rs.getString("v.tamaño").equalsIgnoreCase("No aplica")) ? "" :" - " +rs.getString("v.tamaño");
-                String color = (rs.getString("v.colorTinta").equalsIgnoreCase("No aplica")) ? "" : " - "+rs.getString("v.colorTinta");
+                String papel = (rs.getString("v.papelOriginal").equalsIgnoreCase("No aplica") || rs.getString("v.papelOriginal").trim().equals("")) ? "" :" - " +rs.getString("v.papelOriginal");
+                String tamaño = (rs.getString("v.tamaño").equalsIgnoreCase("No aplica") || rs.getString("v.tamaño").trim().equals("")) ? "" :" - " +rs.getString("v.tamaño");
+                String color = (rs.getString("v.colorTinta").equalsIgnoreCase("No aplica") || rs.getString("v.colorTinta").trim().equals("")) ? "" : " - "+rs.getString("v.colorTinta");
                 
                 elementos[0] = rs.getDouble("er.idVenta");
                 elementos[1] = rs.getDouble("er.id");
