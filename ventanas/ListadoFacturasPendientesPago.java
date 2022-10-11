@@ -655,9 +655,9 @@ public class ListadoFacturasPendientesPago extends javax.swing.JFrame {
         return true;
     }
 
-    public void RegistrarAbonoFactura(String factura, String abono, String observaciones, String cliente) {
+    public void RegistrarAbonoFactura(String factura, String abono, String observaciones, String cliente, String presupuesto) {
 
-        String consulta = "insert into abonosfacturas (factura, abono, fecha, observaciones, registradoPor) values (?, ?, ?, ?, ?);";
+        String consulta = "insert into abonosfacturas (factura, abono, fecha, observaciones, registradoPor, presupuesto) values (?, ?, ?, ?, ?, ?);";
 
         Connection cn = Conexion.Conectar();
 
@@ -668,6 +668,7 @@ public class ListadoFacturasPendientesPago extends javax.swing.JFrame {
             pst.setString(3, new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
             pst.setString(4, observaciones);
             pst.setString(5, this.usuario);
+            pst.setString(6, presupuesto);
 
             pst.executeUpdate();
             JOptionPane.showMessageDialog(this, "Abono registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
@@ -817,6 +818,28 @@ public class ListadoFacturasPendientesPago extends javax.swing.JFrame {
             e.printStackTrace();
         }
 
+        return null;
+    }
+    
+    public String consultarPresupuesto() {
+        String consulta = "select max(idPresupuesto) as presup from presupuestos";
+
+        Connection cn = Conexion.Conectar();
+        try {
+
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                return rs.getString("presup");
+            }
+
+            cn.close();
+            
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar el presupuesto en la base de datos", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+        
         return null;
     }
 
@@ -1105,7 +1128,9 @@ public class ListadoFacturasPendientesPago extends javax.swing.JFrame {
                                 + " a la factura No. " + numeroFactura + " cliente "+cliente+"?");
 
                         if (opcion == 0) {
-                            RegistrarAbonoFactura(numeroFactura, abono, observaciones, cliente);
+                            
+                            String presupuesto = consultarPresupuesto();
+                            RegistrarAbonoFactura(numeroFactura, abono, observaciones, cliente, presupuesto);
                             limpiarTabla(modelo);
                             llenarTabla();
                             limpiarCampos();

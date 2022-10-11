@@ -1035,12 +1035,12 @@ public class InfomeVentas extends javax.swing.JFrame {
                         ventas += String.valueOf((Integer) listado.get(i)[0]) + ")";
                     }
                 }
-
+                
                 String consultaAbonos = "select a.idAbono, a.idVenta, c.nombreCliente, a.fecha, a.valor, a.observaciones, a.registradoPor\n"
                         + "from abonos a left join ventas v on a.idVenta=v.idVenta\n"
                         + "left join clientes c on v.idCliente=c.idCliente\n"
                         + "where a.idVenta in " + ventas + " and a.estado='Activo' order by a.idAbono";
-
+                
                 ArrayList<Object[]> listadoAbonos = consultarAbonosEntradasDiarias(consultaAbonos);
 
                 ImprimirInformeDeudaEntradasDiarias(listado, listadoAbonos, cliente, fechaDesde, fechaHasta);
@@ -1515,7 +1515,7 @@ public class InfomeVentas extends javax.swing.JFrame {
 
             PreparedStatement pst2 = cn.prepareStatement(consultaAbonos);
             ResultSet rs2 = pst2.executeQuery();
-
+            
             while (rs2.next()) {
 
                 Object[] nuevo = new Object[8];

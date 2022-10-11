@@ -166,11 +166,11 @@ public class RegistroAbonos extends javax.swing.JFrame {
         }
     }
 
-    public void RegistrarAbono(String IdVenta, String valorAbono, String observaciones, String registradoPor, String cliente) {
+    public void RegistrarAbono(String IdVenta, String valorAbono, String observaciones, String registradoPor, String cliente, String presupuesto) {
 
         String fecha = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         String consulta = "insert into abonos (idVenta, valor, fecha, observaciones, "
-                + "registradoPor) values (?, ?, ?, ?, ?)";
+                + "registradoPor, presupuesto) values (?, ?, ?, ?, ?, ?)";
         try {
             Connection cn = Conexion.Conectar();
             PreparedStatement pst = cn.prepareStatement(consulta, PreparedStatement.RETURN_GENERATED_KEYS);
@@ -180,6 +180,7 @@ public class RegistroAbonos extends javax.swing.JFrame {
             pst.setString(3, fecha);
             pst.setString(4, observaciones);
             pst.setString(5, registradoPor);
+            pst.setString(6, presupuesto);
 
             pst.executeUpdate();
             JOptionPane.showMessageDialog(this, "Abono registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
@@ -320,7 +321,7 @@ public class RegistroAbonos extends javax.swing.JFrame {
                             break;
                         case 6:
                             celda.setCellValue((Double) elemento[6]);
-                            break;                          
+                            break;
                         case 7:
                             celda.setCellValue((String) elemento[5]);
                             break;
@@ -457,7 +458,7 @@ public class RegistroAbonos extends javax.swing.JFrame {
                     nuevo[4] = rs.getDouble("v.precio");
                     nuevo[5] = rs.getString("v.registradoPor");
                     nuevo[6] = rs.getDouble("saldo");
-                    
+
                     listado.add(nuevo);
 
                 }
@@ -644,6 +645,28 @@ public class RegistroAbonos extends javax.swing.JFrame {
 
         }
 
+        return null;
+    }
+
+    public String consultarPresupuesto() {
+        String consulta = "select max(idPresupuesto) as presup from presupuestos";
+
+        Connection cn = Conexion.Conectar();
+        try {
+
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                return rs.getString("presup");
+            }
+
+            cn.close();
+            
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar el presupuesto en la base de datos", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+        
         return null;
     }
 
@@ -953,7 +976,8 @@ public class RegistroAbonos extends javax.swing.JFrame {
 
                         if (confirmacion == 0) {
 
-                            RegistrarAbono(IdVenta, valorAbono, observaciones, this.usuario, cliente);
+                            String presupuesto = consultarPresupuesto();
+                            RegistrarAbono(IdVenta, valorAbono, observaciones, this.usuario, cliente, presupuesto);
                             LimpiarFormulario();
                             limpiarTabla(modelo);
                             llenarTabla();

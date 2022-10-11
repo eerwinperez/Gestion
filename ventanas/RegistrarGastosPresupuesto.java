@@ -798,7 +798,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
             }
 
         } else {
-            JOptionPane.showMessageDialog(this, "Seleccione un gasto para autorizar", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Seleccione un gasto para autorizar", "Informacion", JOptionPane.ERROR_MESSAGE);
         }
 
 

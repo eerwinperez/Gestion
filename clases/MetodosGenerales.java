@@ -402,8 +402,9 @@ public class MetodosGenerales {
 
     public static void main(String[] args) {
 
-        System.out.println(encriptarContraseña("Luis"));
-
+        //System.out.println(encriptarContraseña("Luis"));
+        String frase="(PROVISIONAL) UTILIDAD DEL PERIODO ANTERIOR 4 - SEPTIEMBRE 2022";
+        System.out.println(frase.substring(0, 13));
     }
 
 }

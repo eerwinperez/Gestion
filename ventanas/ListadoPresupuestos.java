@@ -194,15 +194,23 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
 //        jButton_editarRubros.setEnabled(false);
 //    }
     public void CambiarEstadoPresupuesto(String idpresupuesto, String estado) {
-
+        
+        String consulta2="update presupuestos set estado='CERRADO'";
         String consulta = "update presupuestos set estado=? where idPresupuesto=?";
         try {
             Connection cn = Conexion.Conectar();
+            
+            cn.setAutoCommit(false);
+            PreparedStatement pst2 = cn.prepareStatement(consulta2);
+            pst2.executeUpdate();
+            
             PreparedStatement pst = cn.prepareStatement(consulta);
             pst.setString(1, estado);
             pst.setString(2, idpresupuesto);
 
             pst.executeUpdate();
+            
+            cn.commit();
             JOptionPane.showMessageDialog(this, "Estado de presupuesto actualizado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
 
         } catch (HeadlessException | SQLException e) {
@@ -729,21 +737,20 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
         return 1;
     }
 
-    public ArrayList<Object[]> consultarIngresosEntradasDiarias(String fechaInicial, String fechaFinal) {
+    public ArrayList<Object[]> consultarIngresosEntradasDiarias(String fechaInicial, String fechaFinal, String idPresupuesto) {
 
         ArrayList<Object[]> listado = new ArrayList<>();
         String consulta = "select a.idAbono, a.idVenta, v.FechaventaSistema, v.descripcionTrabajo, a.fecha, c.nombreCliente, a.observaciones, a.valor, "
-                + "a.registradoPor    \n"
+                + "a.registradoPor, a.presupuesto    \n"
                 + "from abonos a join ventas v on a.idVenta=v.Idventa and a.estado='Activo'\n"
                 + "join clientes c on v.Idcliente=c.idCliente\n"
-                + "where a.fecha between ? and ?\n"
+                + "where a.presupuesto=? \n"
                 + "order by a.idAbono";
 
         Connection cn = Conexion.Conectar();
         try {
             PreparedStatement pst = cn.prepareStatement(consulta);
-            pst.setString(1, fechaInicial);
-            pst.setString(2, fechaFinal);
+            pst.setString(1, idPresupuesto);
 
             ResultSet rs = pst.executeQuery();
 
@@ -785,20 +792,19 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
         return null;
     }
 
-    public ArrayList<Object[]> consultarIngresosFacturas(String fechaInicial, String fechaFinal) {
+    public ArrayList<Object[]> consultarIngresosFacturas(String fechaInicial, String fechaFinal, String idPresupuesto) {
 
         ArrayList<Object[]> listado = new ArrayList<>();
         String consulta = "select a.idAbono, a.factura, a.fecha, c.nombreCliente, a.observaciones, a.abono, "
-                + "a.registradoPor, f.fechaFactura \n"
+                + "a.registradoPor, f.fechaFactura, a.presupuesto \n"
                 + "from abonosfacturas a left join facturas f on a.factura=f.idFactura and a.estado='Activo'\n"
                 + "left join clientes c on f.idCliente=c.idCliente\n"
-                + "where a.fecha between ? and ?";
+                + "where a.presupuesto=?";
 
         Connection cn = Conexion.Conectar();
         try {
             PreparedStatement pst = cn.prepareStatement(consulta);
-            pst.setString(1, fechaInicial);
-            pst.setString(2, fechaFinal);
+            pst.setString(1, idPresupuesto);
 
             ResultSet rs = pst.executeQuery();
 
@@ -814,13 +820,13 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
                 elemento[5] = rs.getDouble("a.abono");
                 elemento[6] = rs.getString("a.registradoPor");
                 elemento[8] = rs.getDate("f.fechaFactura");
-                
-                if (((Date)elemento[8]).before(new SimpleDateFormat("yyyy-MM-dd").parse(fechaInicial))) {
-                    elemento[7]="Ingresos meses anteriores";
+
+                if (((Date) elemento[8]).before(new SimpleDateFormat("yyyy-MM-dd").parse(fechaInicial))) {
+                    elemento[7] = "Ingresos meses anteriores";
                 } else {
-                    elemento[7]="";
+                    elemento[7] = "";
                 }
-                
+
                 listado.add(elemento);
             }
 
@@ -832,7 +838,7 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Error al leer los ingresos por entradas diarias", "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         } catch (ParseException ex) {
-            JOptionPane.showMessageDialog(this, "Error al parsear la fecha inicial de ingresos facturas","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al parsear la fecha inicial de ingresos facturas", "Error", JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
         }
 
@@ -1275,16 +1281,16 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
                             break;
                         case 6:
                             primeraCeldaTablaHoja5.setCellValue((String) factura[j]);
-                            break;                            
+                            break;
                         case 7:
                             primeraCeldaTablaHoja5.setCellValue((String) factura[j]);
-                            
+
                             if (((String) factura[j]).equals("Ingresos meses anteriores")) {
-                                ingresosMesesAnterioresFacturas+=(Double) factura[5];
+                                ingresosMesesAnterioresFacturas += (Double) factura[5];
                             } else {
-                                ingresosMesFacturas+=(Double) factura[5];
+                                ingresosMesFacturas += (Double) factura[5];
                             }
-                                                        
+
                             break;
 
                     }
@@ -1295,14 +1301,13 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
             //ingresos del mes
             XSSFCell celda45Hoja5 = fila4Hoja5.getCell(5);
             celda45Hoja5.setCellValue(ingresosMesFacturas);
-            
+
             //Ingresos de meses anteriores
             XSSFRow fila5Hoja5 = hoja5.getRow(5);
             XSSFCell celda55Hoja5 = fila5Hoja5.getCell(5);
             celda55Hoja5.setCellValue(ingresosMesesAnterioresFacturas);
-            
+
             //total ingresos del periodo
-            
             XSSFRow fila6Hoja5 = hoja5.getRow(6);
             XSSFCell celda65Hoja5 = fila6Hoja5.getCell(5);
             celda65Hoja5.setCellValue(totalFacturas);
@@ -1521,6 +1526,34 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
         }
 
         return null;
+    }
+
+    public boolean comprobarEstado(int presupuesto) {
+
+        String consulta = "select concepto from partidaspresupuestos where idPresupuesto=?";
+
+        Connection cn = Conexion.Conectar();
+        try {
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setInt(1, presupuesto);
+            ResultSet rs = pst.executeQuery();
+
+            while (rs.next()) {
+
+                if (rs.getString("concepto").length()>=13 && rs.getString("concepto").substring(0, 13).equalsIgnoreCase("(provisional)")) {
+                    return false;
+                }
+            }
+
+            cn.close();
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar si hay mas de un presupuesto con gastos "
+                    + "pendientes de autorizar", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
+        return true;
     }
 
     /**
@@ -1969,8 +2002,8 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
             ArrayList<Object[]> gastos = consultarGastos(idPresupuesto);
             ArrayList<Object[]> listaGastosNoAutorizados = consultarListadoGastosNoAutorizados(idPresupuesto);
             double gastosNoAutorizados = consultarGastosNoAutorizados(idPresupuesto);
-            ArrayList<Object[]> ingresosEntradasDiarias = consultarIngresosEntradasDiarias(datosPresupuesto[1], datosPresupuesto[2]);
-            ArrayList<Object[]> ingresosFacturas = consultarIngresosFacturas(datosPresupuesto[1], datosPresupuesto[2]);
+            ArrayList<Object[]> ingresosEntradasDiarias = consultarIngresosEntradasDiarias(datosPresupuesto[1], datosPresupuesto[2], idPresupuesto);
+            ArrayList<Object[]> ingresosFacturas = consultarIngresosFacturas(datosPresupuesto[1], datosPresupuesto[2], idPresupuesto);
 
             GenerarInformeEconomico(idPresupuesto, datosPresupuesto, itemsPresupusto, partidas, gastos,
                     ingresosEntradasDiarias, ingresosFacturas, gastosNoAutorizados, listaGastosNoAutorizados);
@@ -1989,39 +2022,28 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
         String[] infoPresup = consultarDatosPresupuesto(String.valueOf(presupAnterior));
         //Fecha inicio y fin posicion 1 y 2 respectivamente   
 
+//        System.out.println("El presupuesto a consultar es: "+(consultarMaxPresup()-1));
 //        System.out.println(infoPresup[1]);
 //        System.out.println(infoPresup[2]);
-        try {
-            String fechaIni = new SimpleDateFormat("yyyy-MM-dd").format(jDateChooser_ini.getDate());
-            String fechaFin = new SimpleDateFormat("yyyy-MM-dd").format(jDateChooser_fin.getDate());
-            String descripcion = jTextField_descrippresup.getText().trim().toUpperCase();
+        //Verificamos que no haya mas de un presupuesto con gastos pendientes por autorizar
+        boolean verificacion = comprobarEstado(consultarMaxPresup());
 
-            if (!descripcion.equals("")) {
+//        System.out.println("El estado es: "+verificacion);
+        
+        if (verificacion) {
 
-                //Verificamos que la fecha inicio no se superior a la fecha fin
-                if (jDateChooser_ini.getDate().before(jDateChooser_fin.getDate())) {
+            try {
+                String fechaIni = new SimpleDateFormat("yyyy-MM-dd").format(jDateChooser_ini.getDate());
+                String fechaFin = new SimpleDateFormat("yyyy-MM-dd").format(jDateChooser_fin.getDate());
+                String descripcion = jTextField_descrippresup.getText().trim().toUpperCase();
 
-                    //Verificamos si hay gastos pendientes por autorizar
-                    if (comprobarGastos()) {
+                if (!descripcion.equals("")) {
 
-                        double sumaPartidas = consultarSumaPartidas(presupAnterior);
-                        double sumaEE = consultarSumaIngresosEntradasDiarias(infoPresup[1], infoPresup[2]);
-                        double sumaFacturas = consultarSumaIngresosFacturas(infoPresup[1], infoPresup[2]);
-                        double sumaGastos = consultarSumaGastos(presupAnterior);
+                    //Verificamos que la fecha inicio no se superior a la fecha fin
+                    if (jDateChooser_ini.getDate().before(jDateChooser_fin.getDate())) {
 
-                        double partidaUtilidad = sumaPartidas + sumaEE + sumaFacturas - sumaGastos;
-                        RegistrarPresupuesto(descripcion, fechaIni, fechaFin, partidaUtilidad, infoPresup, presupAnterior);
-                        limpiarCampos();
-                        limpiarTabla(modelo);
-                        llenarTabla();
-                        llenarCampos();
-
-                    } else {
-                        int opcion = JOptionPane.showConfirmDialog(this, "Existen Gastos pendientes por autorizar. Se creará una partidad provisional por utilidad o perdida del presupuesto anterior.\n"
-                                + "La partida provisoria puede ser actualizada por el Gerente una vez haya autorizado todos los gastos.\n\n"
-                                + "¿Desea continuar?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
-
-                        if (opcion == 0) {
+                        //Verificamos si hay gastos pendientes por autorizar
+                        if (comprobarGastos()) {
 
                             double sumaPartidas = consultarSumaPartidas(presupAnterior);
                             double sumaEE = consultarSumaIngresosEntradasDiarias(infoPresup[1], infoPresup[2]);
@@ -2029,26 +2051,52 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
                             double sumaGastos = consultarSumaGastos(presupAnterior);
 
                             double partidaUtilidad = sumaPartidas + sumaEE + sumaFacturas - sumaGastos;
-                            RegistrarPresupuestoProvisional(descripcion, fechaIni, fechaFin, partidaUtilidad, infoPresup, presupAnterior);
+                            RegistrarPresupuesto(descripcion, fechaIni, fechaFin, partidaUtilidad, infoPresup, presupAnterior);
                             limpiarCampos();
                             limpiarTabla(modelo);
                             llenarTabla();
                             llenarCampos();
 
                         } else {
-                            JOptionPane.showMessageDialog(this, "Presupuesto no registrado", "Informacion", JOptionPane.ERROR_MESSAGE);
-                        }
-                    }
+                            int opcion = JOptionPane.showConfirmDialog(this, "Existen Gastos pendientes por autorizar. Se creará una partidad provisional por utilidad o perdida del presupuesto anterior.\n"
+                                    + "La partida provisoria puede ser actualizada por el Gerente una vez haya autorizado todos los gastos.\n\n"
+                                    + "¿Desea continuar?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
 
+                            if (opcion == 0) {
+
+                                double sumaPartidas = consultarSumaPartidas(presupAnterior);
+                                double sumaEE = consultarSumaIngresosEntradasDiarias(infoPresup[1], infoPresup[2]);
+                                double sumaFacturas = consultarSumaIngresosFacturas(infoPresup[1], infoPresup[2]);
+                                double sumaGastos = consultarSumaGastos(presupAnterior);
+
+                                double partidaUtilidad = sumaPartidas + sumaEE + sumaFacturas - sumaGastos;
+                                RegistrarPresupuestoProvisional(descripcion, fechaIni, fechaFin, partidaUtilidad, infoPresup, presupAnterior);
+                                limpiarCampos();
+                                limpiarTabla(modelo);
+                                llenarTabla();
+                                llenarCampos();
+
+                            } else {
+                                JOptionPane.showMessageDialog(this, "Presupuesto no registrado", "Informacion", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+
+                    } else {
+                        JOptionPane.showMessageDialog(this, "La fecha inicial no puede ser mayor a la fecha final", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
                 } else {
-                    JOptionPane.showMessageDialog(this, "La fecha inicial no puede ser mayor a la fecha final", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Complete la descripcion", "Error", JOptionPane.ERROR_MESSAGE);
                 }
-            } else {
-                JOptionPane.showMessageDialog(this, "Complete la descripcion", "Error", JOptionPane.ERROR_MESSAGE);
+
+            } catch (NullPointerException e) {
+                JOptionPane.showMessageDialog(this, "Formato o fecha no valida. El formato de fecha debe ser DD/MM/AAAA", "Error", JOptionPane.ERROR_MESSAGE);
             }
 
-        } catch (NullPointerException e) {
-            JOptionPane.showMessageDialog(this, "Formato o fecha no valida. El formato de fecha debe ser DD/MM/AAAA", "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+            //Consultamos la informacion de dos presupuestos atras
+            String[] infoPresup2 = consultarDatosPresupuesto(String.valueOf(consultarMaxPresup()));
+            JOptionPane.showMessageDialog(this, "No es posible crear un nuevo presupuesto debido a que el presupuesto\n"
+                    + (consultarMaxPresup()) + " " + infoPresup2[0] + " sigue con gastos pendientes de autorizar");
         }
 
 
