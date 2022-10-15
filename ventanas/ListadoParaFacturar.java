@@ -46,6 +46,7 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
         InhabilitarCampos();
         SettearModelo();
         llenarTabla();
+        llenarJComboFacturas();
         ConfiguracionGralJFrame();
 
     }
@@ -66,6 +67,40 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
         SettearModelo();
         llenarTabla();
         InhabilitarCampos();
+        llenarJComboFacturas();
+
+        if (this.permiso.equalsIgnoreCase("Gerente")) {
+            jButton_editarFactura.setEnabled(true);
+        } else {
+            jButton_editarFactura.setEnabled(false);
+        }
+    }
+
+    public void llenarJComboFacturas() {
+
+        String consulta = "select idFactura from facturas where estado='Inactivo' and idCliente=" + this.idCliente;
+
+        Connection cn = Conexion.Conectar();
+        try {
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            ResultSet rs = pst.executeQuery();
+
+            ArrayList<String> lista = new ArrayList<>();
+
+            while (rs.next()) {
+                lista.add(rs.getString("idFactura"));
+            }
+
+            cn.close();
+
+            for (String elemento : lista) {
+                jComboBox_facturaAeditar.addItem(elemento);
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al leer las facturas anuladas", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
     }
 
     public void InhabilitarCampos() {
@@ -247,8 +282,66 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
 
             //MetodosGenerales.enviarEmail(asunto, mensaje);
             //MetodosGenerales.registrarHistorial(usuario, mensaje);
+        } catch (SQLIntegrityConstraintViolationException e) {
+            JOptionPane.showMessageDialog(this, "Error."
+                    + "\nEs posible que este intengando ingresar un registro pero falte completar algun dato obligatorio", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        } catch (MysqlDataTruncation e) {
+            JOptionPane.showMessageDialog(this, "Error."
+                    + "\nAlgunos de los datos que intenta ingresar son demasiado extensos.\nIntente acortar los textos o no registrar numeros muy grande no logicos", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        } catch (HeadlessException | SQLException e) {
+            JOptionPane.showMessageDialog(this, "SQLException\nError en registrar la factura. Contacte al administrador", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
+    }
+    
+    public void editarFactura(ArrayList<String[]> listado, double monto, String factura) {
+
+        String elminarElementosFacturaAnulada = "delete from elementosfactura where factura=?";
+        String actualizarFactura="update facturas set monto=?, estado='Activo' where idFactura=?";
+        String registrarElementosFactura = "insert into elementosfactura (idElementoRemito, cantidad, factura)"
+                + " values (?, ?, ?)";
+
+        Connection cn = Conexion.Conectar();
+
+        try {
+
+            cn.setAutoCommit(false);
             
+            PreparedStatement pst = cn.prepareStatement(elminarElementosFacturaAnulada);
+            pst.setString(1, factura);
+            pst.executeUpdate();
             
+            PreparedStatement pst2 = cn.prepareStatement(actualizarFactura);
+            pst2.setDouble(1, monto);
+            pst2.setString(2, factura);
+            pst2.executeUpdate();
+           
+
+            PreparedStatement pst3 = cn.prepareStatement(registrarElementosFactura);
+            for (String[] elemento : listado) {
+                pst3.setString(1, elemento[0]);
+                pst3.setString(2, elemento[1]);
+                pst3.setString(3, factura);
+                pst3.executeUpdate();
+            }
+
+
+            cn.commit();
+            cn.close();
+            
+            JOptionPane.showMessageDialog(this, "Factura editada", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+
+//            String asunto = "Factura No. " + idFactura + " Generada - " + cliente;
+//            String mensaje = "Se ha generado la factura " + idFactura + " - a nombre de : " + cliente
+//                    + "\nCondicion de pago: " + condición
+//                    + "\nValor facturado = " + MetodosGenerales.ConvertirIntAMoneda(monto)
+//                    + "\nUsuario responsable: " + this.usuario;
+
+            //MetodosGenerales.enviarEmail(asunto, mensaje);
+            //MetodosGenerales.registrarHistorial(usuario, mensaje);
         } catch (SQLIntegrityConstraintViolationException e) {
             JOptionPane.showMessageDialog(this, "Error."
                     + "\nEs posible que este intengando ingresar un registro pero falte completar algun dato obligatorio", "Error", JOptionPane.ERROR_MESSAGE);
@@ -341,6 +434,10 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
         jPanel3 = new javax.swing.JPanel();
         jButton2 = new javax.swing.JButton();
         jTextField_total = new javax.swing.JTextField();
+        jPanel4 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        jComboBox_facturaAeditar = new javax.swing.JComboBox<>();
+        jButton_editarFactura = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -432,10 +529,10 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addGap(18, 18, 18)
-                .addComponent(jTextField_condicionPago, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addComponent(jTextField_condicionPago)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jButton1)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -478,20 +575,59 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
                 .addContainerGap(22, Short.MAX_VALUE))
         );
 
+        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Factura a editar", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.TOP));
+
+        jLabel2.setText("Factura");
+
+        jComboBox_facturaAeditar.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "    " }));
+
+        jButton_editarFactura.setText("Editar");
+        jButton_editarFactura.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton_editarFacturaActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel2)
+                .addGap(18, 18, 18)
+                .addComponent(jComboBox_facturaAeditar, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jButton_editarFactura, javax.swing.GroupLayout.DEFAULT_SIZE, 84, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(jComboBox_facturaAeditar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton_editarFactura))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(20, 20, 20)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(34, 34, 34)
-                            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 940, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 940, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(31, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -504,9 +640,13 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
                 .addGap(24, 24, 24)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 385, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(25, Short.MAX_VALUE))
         );
+
+        jPanel4.getAccessibleContext().setAccessibleName("Factura a editar");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -667,6 +807,104 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
 
     }//GEN-LAST:event_jButton2ActionPerformed
 
+    private void jButton_editarFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_editarFacturaActionPerformed
+
+        String factura = jComboBox_facturaAeditar.getSelectedItem().toString().trim();
+
+        if (!factura.equalsIgnoreCase("")) {
+            
+            int contadorElementos = 0;
+            int contador = 0;
+            ArrayList<String[]> listado = new ArrayList<>();
+            int contadorTexto = 0;
+            int contadorMayorCantidad = 0;
+
+            for (int i = 0; i < jTable1.getRowCount(); i++) {
+                if (jTable1.getValueAt(i, 0).equals(true)) {
+                    contador++;
+                    break;
+                }
+            }
+
+            for (int i = 0; i < jTable1.getRowCount(); i++) {
+                if (jTable1.getValueAt(i, 0).equals(true)) {
+                    contadorElementos++;
+                }
+            }
+
+            double monto = 0;
+
+            if (contadorElementos <= 15) {
+                if (contador != 0) {
+                    int opcion = JOptionPane.showConfirmDialog(this, "¿Desea facturar los items seleccionados?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
+                    if (opcion == 0) {
+                        for (int i = 0; i < jTable1.getRowCount(); i++) {
+
+                            if (jTable1.getValueAt(i, 0).equals(true)) {
+
+                                if (comprobarGrilla(jTable1.getValueAt(i, 6).toString())) {
+
+                                    double cantidad = Double.parseDouble(jTable1.getValueAt(i, 6).toString());
+                                    double precio = Double.parseDouble(MetodosGenerales.ConvertirMonedaAInt(jTable1.getValueAt(i, 7).toString()));
+                                    monto += (cantidad * precio);
+
+                                    String[] nuevo = new String[3];
+                                    if (Double.parseDouble(jTable1.getValueAt(i, 6).toString())
+                                            <= Double.parseDouble(jTable1.getValueAt(i, 5).toString())) {
+                                        //int opcion = JOptionPane.showConfirmDialog(this, "¿Desea facturar los items seleccionados?");
+
+                                        //if (opcion == 0) {
+                                        nuevo[0] = jTable1.getValueAt(i, 1).toString();
+                                        nuevo[1] = jTable1.getValueAt(i, 6).toString();
+                                        nuevo[2] = jTable1.getValueAt(i, 7).toString();
+                                        listado.add(nuevo);
+                                        //}
+                                    } else {
+
+                                        int opcion1 = JOptionPane.showConfirmDialog(this, "¿Desea facturar mayor cantidad de la venta " + jTable1.getValueAt(i, 3).toString() + "?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
+                                        if (opcion1 == 0) {
+                                            nuevo[0] = jTable1.getValueAt(i, 1).toString();
+                                            nuevo[1] = jTable1.getValueAt(i, 6).toString();
+                                            nuevo[2] = jTable1.getValueAt(i, 7).toString();
+                                            listado.add(nuevo);
+                                        } else {
+                                            contadorMayorCantidad++;
+                                        }
+                                    }
+
+                                } else {
+                                    JOptionPane.showMessageDialog(this, "Las cantidades a remitir no pueden ser textos, \ncantidades negativas ni cero", "Error", JOptionPane.ERROR_MESSAGE);
+                                    contadorTexto++;
+                                }
+
+                            }
+                        }
+                    }
+
+                } else {
+                    JOptionPane.showMessageDialog(this, "No hay trabajos seleccionador para facturar", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Solo es posible incluir máximo 15 ventas por factura."
+                        + " \nSi requiere facturar mas lineas, hagalo en una nueva factura", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+            if (listado.size() > 0 && contadorTexto == 0 && monto > 0 && contadorMayorCantidad == 0) {
+
+                editarFactura(listado, monto, factura);
+                LimpiarTabla();
+                llenarTabla();
+                limpiarCampos();
+
+            }
+
+        } else {
+            JOptionPane.showMessageDialog(this, "Selecciones la factura a editar", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+        }
+
+
+    }//GEN-LAST:event_jButton_editarFacturaActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -706,12 +944,16 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton_editarFactura;
+    private javax.swing.JComboBox<String> jComboBox_facturaAeditar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField_cliente;

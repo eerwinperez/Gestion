@@ -367,18 +367,17 @@ public class ListadoTotalFacturas extends javax.swing.JFrame {
 
 //            listado[5] = rs.getString("ventas.descripcionTrabajo") + " - " + rs.getString("ventas.tamaño") + " - " + rs.getString("ventas.colorTinta")
 //                    + " - " + rs.getString("ventas.papelOriginal");
-
             while (rs.next()) {
                 Object[] elementos = new Object[6];
 
-                String papel = (rs.getString("v.papelOriginal").equalsIgnoreCase("No aplica") || rs.getString("v.papelOriginal").trim().equals("")) ? "" :" - " +rs.getString("v.papelOriginal");
-                String tamaño = (rs.getString("v.tamaño").equalsIgnoreCase("No aplica") || rs.getString("v.tamaño").trim().equals("")) ? "" :" - " +rs.getString("v.tamaño");
-                String color = (rs.getString("v.colorTinta").equalsIgnoreCase("No aplica") || rs.getString("v.colorTinta").trim().equals("")) ? "" : " - "+rs.getString("v.colorTinta");
-                
+                String papel = (rs.getString("v.papelOriginal").equalsIgnoreCase("No aplica") || rs.getString("v.papelOriginal").trim().equals("")) ? "" : " - " + rs.getString("v.papelOriginal");
+                String tamaño = (rs.getString("v.tamaño").equalsIgnoreCase("No aplica") || rs.getString("v.tamaño").trim().equals("")) ? "" : " - " + rs.getString("v.tamaño");
+                String color = (rs.getString("v.colorTinta").equalsIgnoreCase("No aplica") || rs.getString("v.colorTinta").trim().equals("")) ? "" : " - " + rs.getString("v.colorTinta");
+
                 elementos[0] = rs.getDouble("er.idVenta");
                 elementos[1] = rs.getDouble("er.id");
                 elementos[2] = rs.getDouble("ef.cantidad");
-                elementos[3] = rs.getString("v.descripcionTrabajo")+tamaño+color+papel;
+                elementos[3] = rs.getString("v.descripcionTrabajo") + tamaño + color + papel;
                 elementos[4] = rs.getDouble("v.unitario");
                 elementos[5] = rs.getDouble("total");
 
@@ -746,10 +745,25 @@ public class ListadoTotalFacturas extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         //Verificamos que se haya seleccionado una factura
         String numeroFactura = jTextField_factura.getText().trim();
+        String estado = jLabel_estado.getText().trim();
+
         if (!numeroFactura.equals("")) {
-            Object[] datosCabecera = consultarDatosCabecera(numeroFactura);
-            ArrayList<Object[]> elementosFactura = consultarElementosFactura(numeroFactura);
-            imprimirFactura(numeroFactura, datosCabecera, elementosFactura);
+
+            if (!estado.equalsIgnoreCase("Anulada")) {
+                Object[] datosCabecera = consultarDatosCabecera(numeroFactura);
+                ArrayList<Object[]> elementosFactura = consultarElementosFactura(numeroFactura);
+                imprimirFactura(numeroFactura, datosCabecera, elementosFactura);
+            } else {
+                if (!this.permiso.equalsIgnoreCase("Asistente")) {
+                    JOptionPane.showMessageDialog(this, "La factura a imprimir se encuentra anulada, será mostrada unicamente de manera informativa", "Warning", JOptionPane.WARNING_MESSAGE);
+                    Object[] datosCabecera = consultarDatosCabecera(numeroFactura);
+                    ArrayList<Object[]> elementosFactura = consultarElementosFactura(numeroFactura);
+                    imprimirFactura(numeroFactura, datosCabecera, elementosFactura);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Solo el Gerente o administrador puede visualizar facturas anuladas a manera informativa", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+
+            }
 
         } else {
             JOptionPane.showMessageDialog(this, "Seleccione la factura que desea reimprimir", "Informacion", JOptionPane.INFORMATION_MESSAGE);
