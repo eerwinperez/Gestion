@@ -410,6 +410,11 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
         jTextField_condicionPago.setText("");
         jTextField_id.setText("");
     }
+    
+    public void limpiarJcomboBox(){
+        jComboBox_facturaAeditar.removeAllItems();
+        jComboBox_facturaAeditar.addItem("");
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -895,6 +900,8 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
                 LimpiarTabla();
                 llenarTabla();
                 limpiarCampos();
+                limpiarJcomboBox();
+                llenarJComboFacturas();
 
             }
 
