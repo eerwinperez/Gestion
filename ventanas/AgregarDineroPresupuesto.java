@@ -96,8 +96,8 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
     }
 
     public void InhabilitarSegunPermiso() {
-        jButton_editar.setEnabled(false);
-        jButton_eliminar.setEnabled(false);
+//        jButton_editar.setEnabled(false);
+//        jButton_eliminar.setEnabled(false);
 
     }
 
@@ -231,23 +231,23 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
 
             //Si es el primer presupuesto el boton utilidad debe estar inhabilitado
             if (Integer.parseInt(this.idPresupuesto) > 1) {
-                if (listado.isEmpty()) {
-                    jButton2_utilidad.setBackground(Color.magenta);
-                } else {
-                    //Object[] infoPresup = consultarPresupuestosCalculoUtilidad(Integer.parseInt(this.idPresupuesto), this.descripcion);
-                    //String concepto = "UTILIDAD DEL PERIODO ANTERIOR " + infoPresup[0] + " " + infoPresup[1];
-                    for (Object[] info : listado) {
+//                if (listado.isEmpty()) {
+//                    jButton2_utilidad.setBackground(Color.magenta);
+//                } else {
+                //Object[] infoPresup = consultarPresupuestosCalculoUtilidad(Integer.parseInt(this.idPresupuesto), this.descripcion);
+                //String concepto = "UTILIDAD DEL PERIODO ANTERIOR " + infoPresup[0] + " " + infoPresup[1];
+                for (Object[] info : listado) {
 
-                        if (((String) info[2]).length() >= 12 && ((String) info[2]).substring(0, 13).equals("(PROVISIONAL)")) {
-                            jButton2_utilidad.setEnabled(true);
-                            jButton2_utilidad.setBackground(Color.magenta);
-                            break;
-                        } else {
-                            jButton2_utilidad.setEnabled(false);
-                        }
-
+                    if (((String) info[2]).length() >= 13 && ((String) info[2]).substring(0, 13).equals("(PROVISIONAL)")) {
+                        jButton2_utilidad.setEnabled(true);
+                        jButton2_utilidad.setBackground(Color.magenta);
+                        break;
+                    } else {
+                        jButton2_utilidad.setEnabled(false);
                     }
+
                 }
+//                }
 
             } else {
                 jButton2_utilidad.setEnabled(false);
@@ -1007,7 +1007,7 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
-        jButton_editar.setEnabled(true);
+        //jButton_editar.setEnabled(true);
         int fila = jTable1.getSelectedRow();
         if (fila != -1) {
             try {
@@ -1029,25 +1029,35 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                 jLabel_fechaactual.setText(jTable1.getValueAt(fila, 1).toString());
                 jLabel_valoractual.setText(jTable1.getValueAt(fila, 3).toString());
 
-                //((String) info[2]).length() >= 12 && (((String) info[2]).substring(0, 13).equals("(PROVISIONAL)")
-                                //|| ((String) info[2]).substring(0, 20).equals("UTILIDAD DEL PERIODO"))
-                
-                if (jTable1.getValueAt(fila, 2).toString().length()>=12 && 
-                        ((jTable1.getValueAt(fila, 2).toString().substring(0, 13).equals("(PROVISIONAL)")) ||
-                        jTable1.getValueAt(fila, 2).toString().substring(0, 20).equals("UTILIDAD DEL PERIODO"))) {
+                if (this.permiso.equalsIgnoreCase("Gerente")) {
+
+                    if ((jTable1.getValueAt(fila, 2).toString().length() >= 13 && jTable1.getValueAt(fila, 2).toString().substring(0, 13).equals("(PROVISIONAL)"))
+                            || (jTable1.getValueAt(fila, 2).toString().length() >= 20 && jTable1.getValueAt(fila, 2).toString().substring(0, 20).equals("UTILIDAD DEL PERIODO"))) {
+
+                        jButton_editar.setEnabled(false);
+                        jButton_eliminar.setEnabled(false);
+
+                    } else {
+                        jButton_editar.setEnabled(true);
+                        jButton_eliminar.setEnabled(true);
+                    }
+
+                } else {
                     jButton_editar.setEnabled(false);
                     jButton_eliminar.setEnabled(false);
-                } else {
-                    jButton_editar.setEnabled(true);
-                    jButton_eliminar.setEnabled(true);
                 }
-                
-                
-//                if (jTable1.getValueAt(fila, 2).toString().substring(0, 29).equalsIgnoreCase("UTILIDAD DEL PERIODO ANTERIOR")) {
-//                    jTextField_partida.setEnabled(false);
+
+//                if ((jTable1.getValueAt(fila, 2).toString().length() >= 12
+//                        && ((jTable1.getValueAt(fila, 2).toString().substring(0, 13).equals("(PROVISIONAL)"))
+//                        || jTable1.getValueAt(fila, 2).toString().substring(0, 20).equals("UTILIDAD DEL PERIODO")))
+//                        || !this.permiso.equalsIgnoreCase("Gerente")) {
+//                    jButton_editar.setEnabled(false);
+//                    jButton_eliminar.setEnabled(false);
 //                } else {
-//                    jTextField_partida.setEnabled(true);
+//                    jButton_editar.setEnabled(true);
+//                    jButton_eliminar.setEnabled(true);
 //                }
+
             } catch (StringIndexOutOfBoundsException e) {
                 jTextField_partida.setEnabled(true);
             } catch (Exception e) {
