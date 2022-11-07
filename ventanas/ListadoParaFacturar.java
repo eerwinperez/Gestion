@@ -435,7 +435,7 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jTextField_condicionPago = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        jButton_facturar = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jButton2 = new javax.swing.JButton();
         jTextField_total = new javax.swing.JTextField();
@@ -519,10 +519,10 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
 
         jLabel1.setText("Condicion de pago");
 
-        jButton1.setText("Facturar");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        jButton_facturar.setText("Facturar");
+        jButton_facturar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                jButton_facturarActionPerformed(evt);
             }
         });
 
@@ -536,7 +536,7 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addComponent(jTextField_condicionPago)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton1)
+                .addComponent(jButton_facturar)
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -546,7 +546,7 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(jTextField_condicionPago, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
+                    .addComponent(jButton_facturar))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -585,6 +585,11 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
         jLabel2.setText("Factura");
 
         jComboBox_facturaAeditar.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "    " }));
+        jComboBox_facturaAeditar.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jComboBox_facturaAeditarItemStateChanged(evt);
+            }
+        });
 
         jButton_editarFactura.setText("Editar");
         jButton_editarFactura.addActionListener(new java.awt.event.ActionListener() {
@@ -651,12 +656,10 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
                 .addContainerGap(25, Short.MAX_VALUE))
         );
 
-        jPanel4.getAccessibleContext().setAccessibleName("Factura a editar");
-
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void jButton_facturarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_facturarActionPerformed
 
         int contador = 0;
         int contadorTexto = 0;
@@ -752,7 +755,7 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
 
         }
 
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_jButton_facturarActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 
@@ -912,6 +915,16 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
 
     }//GEN-LAST:event_jButton_editarFacturaActionPerformed
 
+    private void jComboBox_facturaAeditarItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jComboBox_facturaAeditarItemStateChanged
+        String seleccion = jComboBox_facturaAeditar.getSelectedItem().toString().trim();
+        
+        if (seleccion.equals("")) {
+            jButton_facturar.setEnabled(true);
+        } else{
+            jButton_facturar.setEnabled(false);
+        }
+    }//GEN-LAST:event_jComboBox_facturaAeditarItemStateChanged
+
     /**
      * @param args the command line arguments
      */
@@ -949,9 +962,9 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton_editarFactura;
+    private javax.swing.JButton jButton_facturar;
     private javax.swing.JComboBox<String> jComboBox_facturaAeditar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel12;
