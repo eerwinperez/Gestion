@@ -900,11 +900,13 @@ public class ListadoParaFacturar extends javax.swing.JFrame {
             if (listado.size() > 0 && contadorTexto == 0 && monto > 0 && contadorMayorCantidad == 0) {
 
                 editarFactura(listado, monto, factura);
-                LimpiarTabla();
-                llenarTabla();
-                limpiarCampos();
-                limpiarJcomboBox();
-                llenarJComboFacturas();
+//                LimpiarTabla();
+//                llenarTabla();
+//                limpiarCampos();
+//                limpiarJcomboBox();
+//                llenarJComboFacturas();
+                new ListadoTotalFacturas(usuario, permiso).setVisible(true);
+                dispose();
 
             }
 
