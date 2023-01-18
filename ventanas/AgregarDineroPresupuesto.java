@@ -362,10 +362,16 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                 if (opcion == 0) {
 
                     Double partidas = consultarPartidas((Integer) elemento[0]);
-                    Double ingresosEntradasDiarias = consultarIngresosEntradasDiarias((String) elemento[2], (String) elemento[3]);
-                    Double ingresosFacturas = consultarIngresosFacturas((String) elemento[2], (String) elemento[3]);
+                    Double ingresosEntradasDiarias = consultarIngresosEntradasDiarias((String) elemento[2], (String) elemento[3], (Integer) elemento[0]);
+                    Double ingresosFacturas = consultarIngresosFacturas((String) elemento[2], (String) elemento[3], (Integer) elemento[0]);
                     Double gastos = consultarGastos((Integer) elemento[0]);
 
+//                    System.out.println("Partidas: "+partidas);
+//                    System.out.println("EE: "+ingresosEntradasDiarias);
+//                    System.out.println("Fact: "+ingresosFacturas);
+//                    System.out.println("Gastos: "+gastos);
+                    
+                    
                     elemento[5] = partidas + ingresosEntradasDiarias + ingresosFacturas - gastos;
 
                     return elemento;
@@ -380,8 +386,8 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                 if (opcion1 == 0) {
 
                     Double partidas = consultarPartidas((Integer) elemento[0]);
-                    Double ingresosEntradasDiarias = consultarIngresosEntradasDiarias((String) elemento[2], (String) elemento[3]);
-                    Double ingresosFacturas = consultarIngresosFacturas((String) elemento[2], (String) elemento[3]);
+                    Double ingresosEntradasDiarias = consultarIngresosEntradasDiarias((String) elemento[2], (String) elemento[3], (Integer) elemento[0]);
+                    Double ingresosFacturas = consultarIngresosFacturas((String) elemento[2], (String) elemento[3], (Integer) elemento[0]);
                     Double gastos = consultarGastos((Integer) elemento[0]);
 
                     elemento[5] = partidas + ingresosEntradasDiarias + ingresosFacturas - gastos;
@@ -456,15 +462,15 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
         return null;
     }
 
-    public Double consultarIngresosEntradasDiarias(String fechaInicial, String fechaFinal) {
+    public Double consultarIngresosEntradasDiarias(String fechaInicial, String fechaFinal, int presupuesto) {
 
-        String consulta = "select ifnull(sum(valor),0) as total from abonos where fecha between ? and ? and estado='Activo'";
+        String consulta = "select ifnull(sum(valor),0) as total from abonos where  presupuesto=? and estado='Activo'";
 
         Connection cn = Conexion.Conectar();
         try {
             PreparedStatement pst = cn.prepareStatement(consulta);
-            pst.setString(1, fechaInicial);
-            pst.setString(2, fechaFinal);
+            pst.setInt(1, presupuesto);
+            //pst.setString(2, fechaFinal);
 
             ResultSet rs = pst.executeQuery();
 
@@ -483,15 +489,15 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
         return null;
     }
 
-    public Double consultarIngresosFacturas(String fechaInicial, String fechaFinal) {
+    public Double consultarIngresosFacturas(String fechaInicial, String fechaFinal, int presupuesto) {
 
-        String consulta = "select ifnull(sum(abono),0) as total from abonosfacturas where fecha between ? and ? and estado='Activo'";
+        String consulta = "select ifnull(sum(abono),0) as total from abonosfacturas where presupuesto=? and estado='Activo'";
 
         Connection cn = Conexion.Conectar();
         try {
             PreparedStatement pst = cn.prepareStatement(consulta);
-            pst.setString(1, fechaInicial);
-            pst.setString(2, fechaFinal);
+            pst.setInt(1, presupuesto);
+            //pst.setString(2, fechaFinal);
 
             ResultSet rs = pst.executeQuery();
 
@@ -1240,7 +1246,7 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
         Object[] info = consultarPresupuestos(presupuesto, nombrePresupuesto);
 
         String idPartidaUtilidad = consultarIdPartidadUtilidad(presupuesto);
-        String nombrePartidaUtilidad = consultarNombrePartidaUtilida(idPartidaUtilidad);
+        //String nombrePartidaUtilidad = consultarNombrePartidaUtilida(idPartidaUtilidad);
 
         if (comprobacion) {
 

@@ -194,22 +194,22 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
 //        jButton_editarRubros.setEnabled(false);
 //    }
     public void CambiarEstadoPresupuesto(String idpresupuesto, String estado) {
-        
-        String consulta2="update presupuestos set estado='CERRADO'";
+
+        String consulta2 = "update presupuestos set estado='CERRADO'";
         String consulta = "update presupuestos set estado=? where idPresupuesto=?";
         try {
             Connection cn = Conexion.Conectar();
-            
+
             cn.setAutoCommit(false);
             PreparedStatement pst2 = cn.prepareStatement(consulta2);
             pst2.executeUpdate();
-            
+
             PreparedStatement pst = cn.prepareStatement(consulta);
             pst.setString(1, estado);
             pst.setString(2, idpresupuesto);
 
             pst.executeUpdate();
-            
+
             cn.commit();
             JOptionPane.showMessageDialog(this, "Estado de presupuesto actualizado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
 
@@ -1448,15 +1448,15 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
         return null;
     }
 
-    public Double consultarSumaIngresosEntradasDiarias(String fechaInicial, String fechaFinal) {
+    public Double consultarSumaIngresosEntradasDiarias(String fechaInicial, String fechaFinal, int presupuesto) {
 
-        String consulta = "select ifnull(sum(valor),0) as total from abonos where fecha between ? and ? and estado='Activo'";
+        String consulta = "select ifnull(sum(valor),0) as total from abonos where presupuesto=? and estado='Activo'";
 
         Connection cn = Conexion.Conectar();
         try {
             PreparedStatement pst = cn.prepareStatement(consulta);
-            pst.setString(1, fechaInicial);
-            pst.setString(2, fechaFinal);
+            pst.setInt(1, presupuesto);
+            //pst.setString(2, fechaFinal);
 
             ResultSet rs = pst.executeQuery();
 
@@ -1474,15 +1474,15 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
         return null;
     }
 
-    public Double consultarSumaIngresosFacturas(String fechaInicial, String fechaFinal) {
+    public Double consultarSumaIngresosFacturas(String fechaInicial, String fechaFinal, int presupuesto) {
 
-        String consulta = "select ifnull(sum(abono),0) as total from abonosfacturas where fecha between ? and ? and estado='Activo'";
+        String consulta = "select ifnull(sum(abono),0) as total from abonosfacturas where presupuesto=? and estado='Activo'";
 
         Connection cn = Conexion.Conectar();
         try {
             PreparedStatement pst = cn.prepareStatement(consulta);
-            pst.setString(1, fechaInicial);
-            pst.setString(2, fechaFinal);
+            pst.setInt(1, presupuesto);
+            //pst.setString(2, fechaFinal);
 
             ResultSet rs = pst.executeQuery();
 
@@ -1540,7 +1540,7 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
 
             while (rs.next()) {
 
-                if (rs.getString("concepto").length()>=13 && rs.getString("concepto").substring(0, 13).equalsIgnoreCase("(provisional)")) {
+                if (rs.getString("concepto").length() >= 13 && rs.getString("concepto").substring(0, 13).equalsIgnoreCase("(provisional)")) {
                     return false;
                 }
             }
@@ -2029,7 +2029,6 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
         boolean verificacion = comprobarEstado(consultarMaxPresup());
 
 //        System.out.println("El estado es: "+verificacion);
-        
         if (verificacion) {
 
             try {
@@ -2046,9 +2045,14 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
                         if (comprobarGastos()) {
 
                             double sumaPartidas = consultarSumaPartidas(presupAnterior);
-                            double sumaEE = consultarSumaIngresosEntradasDiarias(infoPresup[1], infoPresup[2]);
-                            double sumaFacturas = consultarSumaIngresosFacturas(infoPresup[1], infoPresup[2]);
+                            double sumaEE = consultarSumaIngresosEntradasDiarias(infoPresup[1], infoPresup[2], presupAnterior);
+                            double sumaFacturas = consultarSumaIngresosFacturas(infoPresup[1], infoPresup[2], presupAnterior);
                             double sumaGastos = consultarSumaGastos(presupAnterior);
+
+//                            System.out.println(sumaPartidas);
+//                            System.out.println(sumaEE);
+//                            System.out.println(sumaFacturas);
+//                            System.out.println(sumaGastos);
 
                             double partidaUtilidad = sumaPartidas + sumaEE + sumaFacturas - sumaGastos;
                             RegistrarPresupuesto(descripcion, fechaIni, fechaFin, partidaUtilidad, infoPresup, presupAnterior);
@@ -2065,9 +2069,14 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
                             if (opcion == 0) {
 
                                 double sumaPartidas = consultarSumaPartidas(presupAnterior);
-                                double sumaEE = consultarSumaIngresosEntradasDiarias(infoPresup[1], infoPresup[2]);
-                                double sumaFacturas = consultarSumaIngresosFacturas(infoPresup[1], infoPresup[2]);
+                                double sumaEE = consultarSumaIngresosEntradasDiarias(infoPresup[1], infoPresup[2], presupAnterior);
+                                double sumaFacturas = consultarSumaIngresosFacturas(infoPresup[1], infoPresup[2], presupAnterior);
                                 double sumaGastos = consultarSumaGastos(presupAnterior);
+
+//                                System.out.println(sumaPartidas);
+//                                System.out.println(sumaEE);
+//                                System.out.println(sumaFacturas);
+//                                System.out.println(sumaGastos);
 
                                 double partidaUtilidad = sumaPartidas + sumaEE + sumaFacturas - sumaGastos;
                                 RegistrarPresupuestoProvisional(descripcion, fechaIni, fechaFin, partidaUtilidad, infoPresup, presupAnterior);

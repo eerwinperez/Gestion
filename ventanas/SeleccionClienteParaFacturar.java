@@ -43,7 +43,6 @@ public class SeleccionClienteParaFacturar extends javax.swing.JFrame {
         //Al cerrar solo se cierra esta ventana, no las precedentes
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-
     }
 
     public void IniciarCaracteristicasGenerales() {
@@ -54,8 +53,18 @@ public class SeleccionClienteParaFacturar extends javax.swing.JFrame {
 
         HashSet<String> clientes = new HashSet<>();
 
+        ArrayList<String> clientesFinal = new ArrayList<>();
+
         try {
-            String consulta = "select er.id, er.idRemision, er.idVenta, c.nombreCliente, v.descripcionTrabajo, v.unitario, ifnull(er.cantidad - sum(ef.cantidad), er.cantidad) as saldo\n"
+//            String consulta = "select er.id, er.idRemision, er.idVenta, c.nombreCliente, v.descripcionTrabajo, v.unitario, ifnull(er.cantidad - sum(ef.cantidad), er.cantidad) as saldo\n"
+//                    + "from elementosremision er left join elementosfactura ef on er.id=ef.idElementoRemito and ef.estado='Activo'\n"
+//                    + "left join ventas v on er.idVenta=v.Idventa\n"
+//                    + "left join clientes c on v.idCliente=c.idCliente\n"
+//                    + "where er.estado='Activo'\n"
+//                    + "group by er.id\n"
+//                    + "having saldo > 0;";
+
+            String consulta = "select er.id, er.idRemision, er.idVenta, v.descripcionTrabajo, v.unitario, ifnull(er.cantidad - sum(ef.cantidad), er.cantidad) as saldo\n"
                     + "from elementosremision er left join elementosfactura ef on er.id=ef.idElementoRemito and ef.estado='Activo'\n"
                     + "left join ventas v on er.idVenta=v.Idventa\n"
                     + "left join clientes c on v.idCliente=c.idCliente\n"
@@ -68,15 +77,43 @@ public class SeleccionClienteParaFacturar extends javax.swing.JFrame {
             ResultSet rs = pst.executeQuery();
 
             while (rs.next()) {
-                String nuevo = rs.getString("c.nombreCliente");
+                String nuevo = rs.getString("er.idVenta");
                 clientes.add(nuevo);
             }
 
+            String cadena = "(";
+
+            for (String cliente : clientes) {
+                cadena += cliente+",";
+            }
+
+            int tamaño = cadena.length();
+            
+            String cadena2 = cadena.substring(0, tamaño - 1);
+
+            String cadenaFinal =cadena2+=")";
+
+            
+            String consulta3 = "select distinct c.nombreCliente from clientes c inner join ventas "
+                    + "v on c.idCliente=v.Idcliente and v.idVenta in " + cadenaFinal + ";";
+
+            System.out.println("Cadena= "+cadenaFinal);
+            
+            PreparedStatement pst3 = cn.prepareStatement(consulta3);
+            ResultSet rs3 = pst3.executeQuery();
+
+            while (rs3.next()) {
+                clientesFinal.add(rs3.getString("c.nombreCliente"));
+            }
+
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Error en leer el listado de clientes. SeleccionCliente LlenarJComboBox()");
+            JOptionPane.showMessageDialog(null, "Error en leer el listado de clientes. SeleccionCliente LlenarJComboBox()\n"
+                    + e.getMessage());
+            e.printStackTrace();
+
         }
 
-        for (String cliente : clientes) {
+        for (String cliente : clientesFinal) {
             jComboBox_listaClientes.addItem(cliente);
         }
     }
@@ -327,10 +364,10 @@ public class SeleccionClienteParaFacturar extends javax.swing.JFrame {
                     dispose();
 
                 } else {
-                    JOptionPane.showMessageDialog(this, "El NIT/Cedula ingresado no se encuentra registrado en la base de datos","Error",JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "El NIT/Cedula ingresado no se encuentra registrado en la base de datos", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
-                JOptionPane.showMessageDialog(this, "Seleccione un cliente de la lista o ingrese un numero de documento","Informacion",JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Seleccione un cliente de la lista o ingrese un numero de documento", "Informacion", JOptionPane.INFORMATION_MESSAGE);
             }
         }
 
