@@ -603,7 +603,7 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
                 + "left join modalidadgasto mo on ma.idModalidad=mo.idModalidad\n"
                 + "left join rubros r on ma.idRubro=r.IdRubro\n"
                 + "where i.idPresupuesto=?\n"
-                + "group by i.idGasto \n"
+                + "group by i.idGasto, i.valorPresupuestado \n"
                 + "order by t.idGasto asc, r.IdRubro asc";
 
         Connection cn = Conexion.Conectar();

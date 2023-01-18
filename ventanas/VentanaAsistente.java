@@ -40,7 +40,7 @@ public class VentanaAsistente extends javax.swing.JFrame {
         this.permiso = permiso;
 
         ConfiguracionGralJFrame();
-
+ 
         if (!permiso.equalsIgnoreCase("Gerente")) {
             jButton_crearPresupuesto.setVisible(false);
             jLabel10.setVisible(false);
@@ -65,6 +65,8 @@ public class VentanaAsistente extends javax.swing.JFrame {
         //jButton_usuarios.setEnabled(false);
 
     }
+    
+
     
     public String consultarContraseña(String usuario){
         String consulta="select clave from empleados where nombreCompleto=?";
