@@ -109,7 +109,7 @@ public class ListadoFacturasPendientesPago extends javax.swing.JFrame {
                     + "from facturas f left join abonosfacturas a on f.idFactura=a.factura and a.estado='Activo'\n"
                     + "join clientes c on f.idCliente=c.idCliente\n"
                     + "where f.estado='Activo'\n"
-                    + "group by f.idFactura"
+                    + "group by f.idFactura, c.nombreCliente"
                     + " having saldo >0 order by f.idFactura desc";
 
             Connection cn = Conexion.Conectar();

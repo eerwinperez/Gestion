@@ -86,7 +86,7 @@ public class ConsolidadoPendienteFacturar extends javax.swing.JFrame {
                 + "left join ventas v on er.idVenta=v.Idventa \n"
                 + "left join clientes c on v.Idcliente=c.idCliente\n"
                 + "where er.estado='Activo'\n"
-                + "group by er.id\n"
+                + "group by er.id, c.nombreCliente\n"
                 + "having saldo > 0 "
                 + "order by er.id desc;";
 
