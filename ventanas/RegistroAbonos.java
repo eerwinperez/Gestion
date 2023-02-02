@@ -467,7 +467,7 @@ public class RegistroAbonos extends javax.swing.JFrame {
                 return listado;
 
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Error al leer las deudas del cliente", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error al leer las deudas del cliente\n"+e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 e.printStackTrace();
             }
         } else {
@@ -476,7 +476,7 @@ public class RegistroAbonos extends javax.swing.JFrame {
                     + "from ventas v left join abonos a on v.Idventa=a.idVenta and a.estado='Activo' \n"
                     + "left join clientes c on v.Idcliente=c.idCliente  \n"
                     + "where v.tipoVenta='Entradas diarias' and v.estado='Activo' \n"
-                    + "group by v.Idventa\n"
+                    + "group by v.Idventa, c.nombreCliente \n"
                     + "having saldo >0 \n"
                     + "ORDER by v.Idventa";
 
@@ -505,7 +505,7 @@ public class RegistroAbonos extends javax.swing.JFrame {
                 return listado;
 
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Error al leer las deudas del cliente", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error al leer las deudas del cliente\n"+e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 e.printStackTrace();
             }
 
@@ -577,7 +577,7 @@ public class RegistroAbonos extends javax.swing.JFrame {
                 return listado;
 
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Error al leer las deudas del cliente", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error al leer las deudas del cliente\n"+e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 e.printStackTrace();
             }
         } else {
@@ -586,7 +586,7 @@ public class RegistroAbonos extends javax.swing.JFrame {
                     + "from ventas v left join abonos a on v.Idventa=a.idVenta and a.estado='Activo' \n"
                     + "left join clientes c on v.Idcliente=c.idCliente  \n"
                     + "where v.tipoVenta='Entradas diarias' and v.estado='Activo' \n"
-                    + "group by v.Idventa\n"
+                    + "group by v.Idventa, c.nombreCliente\n"
                     + "having saldo >0 \n"
                     + "ORDER by v.Idventa";
 

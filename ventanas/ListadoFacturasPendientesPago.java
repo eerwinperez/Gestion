@@ -160,7 +160,7 @@ public class ListadoFacturasPendientesPago extends javax.swing.JFrame {
                     + "from facturas f left join abonosfacturas a on f.idFactura=a.factura and a.estado='Activo'\n"
                     + "join clientes c on f.idCliente=c.idCliente and c.idCliente=? \n"
                     + "where f.estado='Activo'\n"
-                    + "group by f.idFactura"
+                    + "group by f.idFactura, c.nombreCliente"
                     + " having saldo >0";
             
             ArrayList<Object[]> listado = new ArrayList<>();
@@ -189,7 +189,7 @@ public class ListadoFacturasPendientesPago extends javax.swing.JFrame {
                 return listado;
 
             } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Error al leer las facturas y generar el informa");
+                JOptionPane.showMessageDialog(this, "Error al leer las facturas y generar el informe");
                 e.printStackTrace();
             }
         } else {
@@ -197,7 +197,7 @@ public class ListadoFacturasPendientesPago extends javax.swing.JFrame {
                     + "from facturas f left join abonosfacturas a on f.idFactura=a.factura and a.estado='Activo'\n"
                     + "join clientes c on f.idCliente=c.idCliente\n"
                     + "where f.estado='Activo'\n"
-                    + "group by f.idFactura"
+                    + "group by f.idFactura, c.nombreCliente"
                     + " having saldo >0";
             ArrayList<Object[]> listado = new ArrayList<>();
 
