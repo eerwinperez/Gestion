@@ -352,6 +352,31 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
 
     }
 
+    public boolean ComprobarGastosSinAutorizacion(int presupuesto) {
+        String consulta = "select estado from gastospresupuestos where idPrespuesto=? and estado='Por Autorizar'";
+
+        Connection cn = Conexion.Conectar();
+
+        try {
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setInt(1, presupuesto);
+
+            ResultSet rs = pst.executeQuery();
+
+            while (rs.next()) {
+                return false;
+            }
+
+            cn.close();
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar el estado de los gastos", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
     public String consultarFechaFin(String idPresupuesto) {
 
         String consulta = "select fechaFin from presupuestos where idPresupuesto=?";
@@ -375,6 +400,158 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
         }
 
         return null;
+    }
+
+    public boolean ComprobarProximoPresupuesto(int presupuesto) {
+
+        String consulta = "select idPresupuesto from presupuestos where idPresupuesto=?";
+
+        Connection cn = Conexion.Conectar();
+
+        try {
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setInt(1, presupuesto + 1);
+
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                return true;
+            }
+
+        } catch (Exception e) {
+
+            JOptionPane.showMessageDialog(this, "Error al consultar si existe un presupuesto despues del actual", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    public String consultarIdPartidadUtilidad(int presupuesto) {
+
+        String consulta = "select min(id) from partidaspresupuestos where idPresupuesto=?";
+        Connection cn = Conexion.Conectar();
+
+        try {
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setInt(1, presupuesto);
+
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("min(id)");
+            }
+
+            cn.close();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar el Id de la partidad utilidad", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public double consultarUtilidad(int presupuesto) {
+        double utilidad = 0;
+
+        String ingresosEE = "select ifnull(sum(valor), 0) as abonos from abonos where presupuesto=?";
+        String ingresosFac = "select ifnull(sum(abono), 0) as abonos from abonosfacturas where presupuesto=?";
+        String gastos = "select ifnull(sum(valor), 0) as abonos from gastospresupuestos where idPrespuesto=?";
+        String partidas = "select ifnull(sum(valor), 0) as abonos from partidaspresupuestos where idPresupuesto=?";
+
+        Connection cn = Conexion.Conectar();
+
+        try {
+
+            cn.setAutoCommit(false);
+
+            PreparedStatement pst = cn.prepareStatement(ingresosEE);
+            pst.setInt(1, presupuesto);
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                utilidad += rs.getDouble("abonos");
+            }
+
+            PreparedStatement pst2 = cn.prepareStatement(ingresosFac);
+            pst2.setInt(1, presupuesto);
+            ResultSet rs2 = pst2.executeQuery();
+
+            if (rs2.next()) {
+                utilidad += rs2.getDouble("abonos");
+            }
+
+            PreparedStatement pst3 = cn.prepareStatement(partidas);
+            pst3.setInt(1, presupuesto);
+            ResultSet rs3 = pst3.executeQuery();
+
+            if (rs3.next()) {
+                utilidad += rs3.getDouble("abonos");
+            }
+
+            PreparedStatement pst4 = cn.prepareStatement(gastos);
+            pst4.setInt(1, presupuesto);
+            ResultSet rs4 = pst4.executeQuery();
+
+            if (rs4.next()) {
+                utilidad -= rs4.getDouble("abonos");
+            }
+
+            cn.commit();
+            cn.close();
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar la utilidad del presupuesto", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
+        return utilidad;
+    }
+
+    public String consultarInfoPresupuesto(int presupuesto) {
+
+        String consulta = "select concat('No. ', idPresupuesto, ' - ', descripcion) as descripcion from presupuestos where idPresupuesto=?";
+        Connection cn = Conexion.Conectar();
+        try {
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setInt(1, presupuesto);
+
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("descripcion");
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al leer la informacion del presupuesto", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return null;
+    }
+
+    public void ActualizarUtilidadProvisional(String idPartidaUtilidad, double partidaUtilidad, String concepto) {
+
+        String consulta = "update partidaspresupuestos set valor=?, concepto=? where id=?";
+        
+        Connection cn = Conexion.Conectar();
+        
+        try {
+            
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setDouble(1, partidaUtilidad);
+            pst.setString(2, concepto);
+            pst.setString(3, idPartidaUtilidad);
+            
+            pst.execute();
+            
+            cn.close();
+            
+            JOptionPane.showMessageDialog(this, "Partida provisional actualizada", "Error",JOptionPane.INFORMATION_MESSAGE);
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al actualizar el valor de la partida provisional","Error",JOptionPane.ERROR_MESSAGE);
+        }
+
     }
 
     /**
@@ -789,7 +966,22 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                     limpiarCampos();
                     limpiarTabla(modelo);
                     llenarTabla(idPresupuesto);
-                    
+
+                    if (ComprobarGastosSinAutorizacion((int) Integer.valueOf(this.idPresupuesto))) {
+                        if (ComprobarProximoPresupuesto((int) Integer.valueOf(this.idPresupuesto))) {
+
+                            String idPartidaUtilidad = consultarIdPartidadUtilidad((int) (Integer.valueOf(this.idPresupuesto)) + 1);
+                            double partidaUtilidad = consultarUtilidad((int) Integer.valueOf(this.idPresupuesto));
+
+                            //System.out.println(partidaUtilidad);
+                            String info = consultarInfoPresupuesto((int) Integer.valueOf(this.idPresupuesto));
+                            String concepto = "UTILIDAD DEL PERIODO ANTERIOR " + info;
+
+                            //System.out.println(concepto + " "+partidaUtilidad);
+                            ActualizarUtilidadProvisional(idPartidaUtilidad, partidaUtilidad, concepto);
+                        }
+                    }
+
                 } else {
                     JOptionPane.showMessageDialog(this, "No es posible autorizar gastos ya registrados", "Error", JOptionPane.ERROR_MESSAGE);
                 }
