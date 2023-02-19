@@ -922,7 +922,7 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
 
             //Llenamos los valores de la tabla
             //Los datos empiezan a cargarse desde la fila 15
-            int filaInicial = 16;
+            int filaInicial = 17;
 //          int sumaGastos = 0;
             double sumaPresupuesto = 0;
             double consecutivo = 1;
@@ -1322,10 +1322,15 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
             XSSFCell celda105Hoja1 = fila10Hoja1.getCell(5);
             celda105Hoja1.setCellValue(totalEntradasDiarias + totalFacturas + totalPartidad);
 
-            //Completamos la ganancia que es la resta de total efectivo menos gastos
+            //Completamos el total de gastos que resulta e sumar gastos autorizados y no autorizados
             XSSFRow fila13Hoja1 = hoja.getRow(13);
             XSSFCell celda135Hoja1 = fila13Hoja1.getCell(5);
-            celda135Hoja1.setCellValue((double) (totalEntradasDiarias + totalFacturas + totalPartidad - totalGastos - gastosNoAutorizados));
+            celda135Hoja1.setCellValue((double)(gastosNoAutorizados+totalGastos));
+            
+            //Completamos la ganancia que es la resta de total efectivo menos gastos
+            XSSFRow fila14hoja1 = hoja.getRow(14);
+            XSSFCell celda146Hoja1= fila14hoja1.getCell(5);
+            celda146Hoja1.setCellValue((double) (totalEntradasDiarias + totalFacturas + totalPartidad - totalGastos - gastosNoAutorizados));
 
             //***********************************
             FileOutputStream nuevo = new FileOutputStream(rutaAGuardar);
