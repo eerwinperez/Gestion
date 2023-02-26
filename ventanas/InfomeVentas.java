@@ -936,7 +936,7 @@ public class InfomeVentas extends javax.swing.JFrame {
                     + "from facturas f left join abonosfacturas a on f.idFactura=a.factura and a.estado='Activo'\n"
                     + "join clientes c on f.idCliente=c.idCliente\n"
                     + "where f.estado='Activo' and fechaFactura between ? and ?\n"
-                    + "group by f.idFactura\n"
+                    + "group by f.idFactura, c.nombreCliente\n"
                     + " order by f.idFactura asc";
 
             Connection cn = Conexion.Conectar();
@@ -997,7 +997,7 @@ public class InfomeVentas extends javax.swing.JFrame {
                     + "from ventas v left join abonos a on v.Idventa=a.idVenta and a.estado='Activo'\n"
                     + "left join clientes c on v.Idcliente=c.idCliente\n"
                     + "where v.tipoVenta='Entradas diarias' and v.estado='Activo' and FechaventaSistema between ? and ? \n"
-                    + " group by v.Idventa \n"
+                    + " group by v.Idventa, c.nombreCliente \n"
                     + " ORDER by v.Idventa";
 
             Connection cn = Conexion.Conectar();
@@ -1063,7 +1063,7 @@ public class InfomeVentas extends javax.swing.JFrame {
                         + "from facturas f left join abonosfacturas a on f.idFactura=a.factura and a.estado='Activo'\n"
                         + "join clientes c on f.idCliente=c.idCliente and c.nombreCliente=?  \n"
                         + "where f.estado='Activo' and fechaFactura between ? and ?\n"
-                        + "group by f.idFactura"
+                        + "group by f.idFactura, c.nombreCliente"
                         + " order by f.idFactura asc";
 
                 Connection cn = Conexion.Conectar();
@@ -1126,7 +1126,7 @@ public class InfomeVentas extends javax.swing.JFrame {
                         + "from ventas v left join abonos a on v.Idventa=a.idVenta and a.estado='Activo'\n"
                         + "left join clientes c on v.Idcliente=c.idCliente \n"
                         + "where v.tipoVenta='Entradas diarias' and v.estado='Activo' and FechaventaSistema between ? and ? and v.Idcliente=?\n"
-                        + "group by v.Idventa\n"
+                        + "group by v.Idventa, c.nombreCliente\n"
                         + "ORDER by v.Idventa asc";
 
                 Connection cn = Conexion.Conectar();

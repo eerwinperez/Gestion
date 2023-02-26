@@ -176,6 +176,7 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
             }
 
             jTable_Presupuestos.setModel(modelo);
+            //jTable_Presupuestos.setCellSelectionEnabled(true);
 
             TableRowSorter<TableModel> ordenador = new TableRowSorter<TableModel>(modelo);
             jTable_Presupuestos.setRowSorter(ordenador);
@@ -1999,7 +2000,9 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
         //Verificamos que se haya seleccionado un presupuesto
         String idPresupuesto = jTextField_NumeroPresup.getText().trim();
 
-        if (!idPresupuesto.equals("")) {
+        try {
+            
+            if (!idPresupuesto.equals("")) {
 
             String[] datosPresupuesto = consultarDatosPresupuesto(idPresupuesto);
             ArrayList<Object[]> itemsPresupusto = consolidarPresupuesto(idPresupuesto);
@@ -2016,6 +2019,12 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
         } else {
             JOptionPane.showMessageDialog(this, "Seleccione el presupuesto", "Informacion", JOptionPane.INFORMATION_MESSAGE);
         }
+            
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error",JOptionPane.ERROR_MESSAGE);
+        }
+        
+        
 
 
     }//GEN-LAST:event_jButton1ActionPerformed
