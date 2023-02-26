@@ -50,26 +50,82 @@ public class SeleccionClienteParaFacturar extends javax.swing.JFrame {
     }
 
     public void llenarJComboBox() {
-
-        HashSet<String> clientes = new HashSet<>();
-
-        ArrayList<String> clientesFinal = new ArrayList<>();
-
-        try {
-//            String consulta = "select er.id, er.idRemision, er.idVenta, c.nombreCliente, v.descripcionTrabajo, v.unitario, ifnull(er.cantidad - sum(ef.cantidad), er.cantidad) as saldo\n"
+//
+//        HashSet<String> clientes = new HashSet<>();
+//
+//        ArrayList<String> clientesFinal = new ArrayList<>();
+//
+//        try {
+////            String consulta = "select er.id, er.idRemision, er.idVenta, c.nombreCliente, v.descripcionTrabajo, v.unitario, ifnull(er.cantidad - sum(ef.cantidad), er.cantidad) as saldo\n"
+////                    + "from elementosremision er left join elementosfactura ef on er.id=ef.idElementoRemito and ef.estado='Activo'\n"
+////                    + "left join ventas v on er.idVenta=v.Idventa\n"
+////                    + "left join clientes c on v.idCliente=c.idCliente\n"
+////                    + "where er.estado='Activo'\n"
+////                    + "group by er.id\n"
+////                    + "having saldo > 0;";
+//
+//            String consulta = "select er.id, er.idRemision, er.idVenta, v.descripcionTrabajo, v.unitario, ifnull(er.cantidad - sum(ef.cantidad), er.cantidad) as saldo\n"
 //                    + "from elementosremision er left join elementosfactura ef on er.id=ef.idElementoRemito and ef.estado='Activo'\n"
 //                    + "left join ventas v on er.idVenta=v.Idventa\n"
 //                    + "left join clientes c on v.idCliente=c.idCliente\n"
 //                    + "where er.estado='Activo'\n"
 //                    + "group by er.id\n"
 //                    + "having saldo > 0;";
+//
+//            Connection cn = Conexion.Conectar();
+//            PreparedStatement pst = cn.prepareStatement(consulta);
+//            ResultSet rs = pst.executeQuery();
+//
+//            while (rs.next()) {
+//                String nuevo = rs.getString("er.idVenta");
+//                clientes.add(nuevo);
+//            }
+//
+//            String cadena = "(";
+//
+//            for (String cliente : clientes) {
+//                cadena += cliente+",";
+//            }
+//
+//            int tamaño = cadena.length();
+//            
+//            String cadena2 = cadena.substring(0, tamaño - 1);
+//
+//            String cadenaFinal =cadena2+=")";
+//
+//            
+//            String consulta3 = "select distinct c.nombreCliente from clientes c inner join ventas "
+//                    + "v on c.idCliente=v.Idcliente and v.idVenta in " + cadenaFinal + ";";
+//
+//            System.out.println("Cadena= "+cadenaFinal);
+//            
+//            PreparedStatement pst3 = cn.prepareStatement(consulta3);
+//            ResultSet rs3 = pst3.executeQuery();
+//
+//            while (rs3.next()) {
+//                clientesFinal.add(rs3.getString("c.nombreCliente"));
+//            }
+//
+//        } catch (SQLException e) {
+//            JOptionPane.showMessageDialog(null, "Error en leer el listado de clientes. SeleccionCliente LlenarJComboBox()\n"
+//                    + e.getMessage());
+//            e.printStackTrace();
+//
+//        }
+//
+//        for (String cliente : clientesFinal) {
+//            jComboBox_listaClientes.addItem(cliente);
+//        }
 
-            String consulta = "select er.id, er.idRemision, er.idVenta, v.descripcionTrabajo, v.unitario, ifnull(er.cantidad - sum(ef.cantidad), er.cantidad) as saldo\n"
+        HashSet<String> clientes = new HashSet<>();
+
+        try {
+            String consulta = "select er.id, er.idRemision, er.idVenta, c.nombreCliente, v.descripcionTrabajo, v.unitario, ifnull(er.cantidad - sum(ef.cantidad), er.cantidad) as saldo\n"
                     + "from elementosremision er left join elementosfactura ef on er.id=ef.idElementoRemito and ef.estado='Activo'\n"
                     + "left join ventas v on er.idVenta=v.Idventa\n"
                     + "left join clientes c on v.idCliente=c.idCliente\n"
                     + "where er.estado='Activo'\n"
-                    + "group by er.id\n"
+                    + "group by er.id, c.nombreCliente\n"
                     + "having saldo > 0;";
 
             Connection cn = Conexion.Conectar();
@@ -77,45 +133,18 @@ public class SeleccionClienteParaFacturar extends javax.swing.JFrame {
             ResultSet rs = pst.executeQuery();
 
             while (rs.next()) {
-                String nuevo = rs.getString("er.idVenta");
+                String nuevo = rs.getString("c.nombreCliente");
                 clientes.add(nuevo);
             }
 
-            String cadena = "(";
-
-            for (String cliente : clientes) {
-                cadena += cliente+",";
-            }
-
-            int tamaño = cadena.length();
-            
-            String cadena2 = cadena.substring(0, tamaño - 1);
-
-            String cadenaFinal =cadena2+=")";
-
-            
-            String consulta3 = "select distinct c.nombreCliente from clientes c inner join ventas "
-                    + "v on c.idCliente=v.Idcliente and v.idVenta in " + cadenaFinal + ";";
-
-            System.out.println("Cadena= "+cadenaFinal);
-            
-            PreparedStatement pst3 = cn.prepareStatement(consulta3);
-            ResultSet rs3 = pst3.executeQuery();
-
-            while (rs3.next()) {
-                clientesFinal.add(rs3.getString("c.nombreCliente"));
-            }
-
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Error en leer el listado de clientes. SeleccionCliente LlenarJComboBox()\n"
-                    + e.getMessage());
-            e.printStackTrace();
-
+            JOptionPane.showMessageDialog(null, "Error en leer el listado de clientes. SeleccionCliente LlenarJComboBox()");
         }
 
-        for (String cliente : clientesFinal) {
+        for (String cliente : clientes) {
             jComboBox_listaClientes.addItem(cliente);
         }
+
     }
 
     public String[] BuscarClienteenBDconNIT(String cedulaNit) {
