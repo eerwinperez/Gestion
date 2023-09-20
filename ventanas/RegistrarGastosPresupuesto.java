@@ -88,6 +88,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
 
     public void limpiarCampos() {
         jComboBox_conceptos.setSelectedIndex(0);
+        jComboBox_estadoDeuda.setSelectedIndex(0);
         jTextField_valor.setText("");
         jTextField_descripcionGasto.setText("");
         jTextField_idConcepto.setText("");
@@ -201,7 +202,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
 
         } catch (SQLIntegrityConstraintViolationException e) {
             JOptionPane.showMessageDialog(this, "Error."
-                    + "\nEs posible que este intengando ingresar un registro pero falte completar algun dato obligatorio", "Error", JOptionPane.ERROR_MESSAGE);
+                    + "\nEs posible que este intengando ingresar un registro pero falta completar algun dato obligatorio", "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         } catch (MysqlDataTruncation e) {
             JOptionPane.showMessageDialog(this, "Error."
@@ -532,24 +533,24 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
     public void ActualizarUtilidadProvisional(String idPartidaUtilidad, double partidaUtilidad, String concepto) {
 
         String consulta = "update partidaspresupuestos set valor=?, concepto=? where id=?";
-        
+
         Connection cn = Conexion.Conectar();
-        
+
         try {
-            
+
             PreparedStatement pst = cn.prepareStatement(consulta);
             pst.setDouble(1, partidaUtilidad);
             pst.setString(2, concepto);
             pst.setString(3, idPartidaUtilidad);
-            
+
             pst.execute();
-            
+
             cn.close();
-            
-            JOptionPane.showMessageDialog(this, "Partida provisional actualizada", "Error",JOptionPane.INFORMATION_MESSAGE);
-            
+
+            JOptionPane.showMessageDialog(this, "Partida provisional actualizada", "Error", JOptionPane.INFORMATION_MESSAGE);
+
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error al actualizar el valor de la partida provisional","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al actualizar el valor de la partida provisional", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
     }
@@ -580,6 +581,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
         jButton_agregar = new javax.swing.JButton();
         jLabel8 = new javax.swing.JLabel();
         jTextField_factura = new javax.swing.JTextField();
+        jComboBox_estadoDeuda = new javax.swing.JComboBox<>();
         jPanel3 = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         jTextField_idConcepto = new javax.swing.JTextField();
@@ -696,6 +698,8 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
             }
         });
 
+        jComboBox_estadoDeuda.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Pagado", "Adeudado" }));
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -711,16 +715,18 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(jLabel8)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jTextField_factura, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(jLabel5)
                         .addGap(18, 18, 18)
                         .addComponent(jTextField_valor, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGap(18, 18, 18)
+                        .addComponent(jComboBox_estadoDeuda, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(18, 18, 18)
                         .addComponent(jButton_agregar))
-                    .addComponent(jTextField_descripcionGasto, javax.swing.GroupLayout.PREFERRED_SIZE, 366, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jTextField_descripcionGasto, javax.swing.GroupLayout.PREFERRED_SIZE, 519, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -737,7 +743,8 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                     .addComponent(jTextField_valor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton_agregar)
                     .addComponent(jTextField_factura, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel8))
+                    .addComponent(jLabel8)
+                    .addComponent(jComboBox_estadoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(12, Short.MAX_VALUE))
         );
 
@@ -821,7 +828,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                         .addGap(179, 179, 179))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(343, Short.MAX_VALUE))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -877,10 +884,22 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                         //Verificamos que la suma a ingresar mas a suma ya gastada en ese concepto, no sea superior al 
                         //valor presupuestado
                         if (valorInt + SumaYaGastado <= valorPresupuestado) {
+
+                            //Verificamos si el usuario ha seleccionado una deuda para establecer el mensaje a mostrar en pantalla
+                            String mensaje = "";
+                            if (jComboBox_estadoDeuda.getSelectedItem().toString().trim().equals("Adeudado")) {
+                                descripcionGasto="***Adeudado*** "+descripcionGasto;
+                                mensaje = "¿Desea registrar un gasto por $" + valorInt
+                                        + " bajo la descripcion: " + descripcionGasto + " al concepto " + concepto + "?"
+                                        + "\n\n*** Tenga en cuenta que esta registrando una DEUDA ***";
+                            } else {
+                                mensaje = "¿Desea registrar un gasto por $" + valorInt
+                                        + " bajo la descripcion: " + descripcionGasto + " al concepto " + concepto + "?";
+                            }
+
                             //Si el valor a ingresar mas lo ya gastado no supera el presupuesto, se  solicita confirmacion y 
                             //registra el gasto
-                            int confirmacion = JOptionPane.showConfirmDialog(this, "¿Desea registrar un gasto por $" + valorInt
-                                    + " bajo la descripcion: " + descripcionGasto + " al concepto " + concepto + "?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
+                            int confirmacion = JOptionPane.showConfirmDialog(this, mensaje, "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
 
                             if (confirmacion == 0) {
                                 String estado = "Registrado";
@@ -889,14 +908,29 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                                 llenarTabla(idPresupuesto);
                                 limpiarCampos();
 
+                            } else {
+                                JOptionPane.showMessageDialog(this, "Gasto no registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
                             }
 
                         } else {
-                            //Sino Le preguntamos al usuario si quiere pedir autorizacion de la gerencia para registrar un gasto
+                            //Verificamos si el usuario ha seleccionado una deuda para establecer el mensaje a mostrar en pantalla
+                            String mensaje = "";
+
+                            if (jComboBox_estadoDeuda.getSelectedItem().toString().trim().equals("Adeudado")) {
+                                descripcionGasto="***Adeudado*** "+descripcionGasto;
+                                mensaje = "La suma de los gastos registrados por el concepto "
+                                        + concepto + " supera el valor presupuestado($" + valorPresupuestado + "). ¿Desea pedir autorizacion para cargar el gasto de $"
+                                        + valorInt + " a dicho concepto?"
+                                        + "\n\n*** Tenga en cuenta que esta registrando una DEUDA ***";
+                            } else {
+                                mensaje = "La suma de los gastos registrados por el concepto "
+                                        + concepto + " supera el valor presupuestado($" + valorPresupuestado + "). ¿Desea pedir autorizacion para cargar el gasto de $"
+                                        + valorInt + " a dicho concepto?";
+                            }
+
+                            //Le preguntamos al usuario si quiere pedir autorizacion de la gerencia para registrar un gasto
                             //que en suma supera el valor de los presupuestado
-                            int eleccion = JOptionPane.showConfirmDialog(this, "La suma de los gastos registrados por el concepto "
-                                    + concepto + " supera el valor presupuestado($" + valorPresupuestado + "). ¿Desea pedir autorizacion para cargar el gasto de $"
-                                    + valorInt + " a dicho concepto?", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                            int eleccion = JOptionPane.showConfirmDialog(this, mensaje, "Informacion", JOptionPane.INFORMATION_MESSAGE);
 
                             if (eleccion == 0) {
 
@@ -905,13 +939,33 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                                 limpiarTabla(modelo);
                                 llenarTabla(idPresupuesto);
                                 limpiarCampos();
+                            } else {
+                                JOptionPane.showMessageDialog(this, "Gasto no registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
                             }
                         }
 
                     } else {
 
-                        int opc = JOptionPane.showConfirmDialog(this, "Esta intentando registrar un gasto posterior a la fecha de cierre del presupuesto actual.\n"
-                                + "¿Desea registrar el gasto como 'Pendiente de autorizacion'?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
+                        //Verificamos si el usuario ha seleccionado una deuda para establecer el mensaje a mostrar en pantalla
+                        String mensaje = "";
+
+                        if (jComboBox_estadoDeuda.getSelectedItem().toString().trim().equals("Adeudado")) {
+                            descripcionGasto="***Adeudado*** "+descripcionGasto;
+                            mensaje = "Esta intentando registrar un gasto posterior a la fecha de cierre del presupuesto actual.\n"
+                                    + "¿Desea registrar el gasto como 'Pendiente de autorizacion'?"
+                                    + "\n\n ***Nota importante***: Tenga en cuenta que el gasto quedará registrado como PENDIENTE DE AUTORIZACION\n"
+                                    + "Cuando el Gerente autorice el gasto se deberán revisar todos los meses hacia adelante ya que se verán afectados por el \n"
+                                    + "registro de un gasto posterior al cierre del mes en cuestión"
+                                    + "\n\n*** Tenga en cuenta que esta registrando una DEUDA ***";
+                        } else {
+                            mensaje = "Esta intentando registrar un gasto posterior a la fecha de cierre del presupuesto actual.\n"
+                                    + "¿Desea registrar el gasto como 'Pendiente de autorizacion'?"
+                                    + "\n\n ***Nota importante***: Tenga en cuenta que el gasto quedará registrado como PENDIENTE DE AUTORIZACION\n"
+                                    + "Cuando el Gerente autorice el gasto se deberán revisar todos los meses hacia adelante ya que se verán afectados por el \n"
+                                    + "registro de un gasto posterior al cierre del mes en cuestión";
+                        }
+
+                        int opc = JOptionPane.showConfirmDialog(this, mensaje, "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
 
                         if (opc == 0) {
                             String estado = "Por Autorizar";
@@ -1100,6 +1154,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
     private javax.swing.JButton jButton_autorizar;
     private javax.swing.JButton jButton_eliminar;
     private javax.swing.JComboBox<String> jComboBox_conceptos;
+    private javax.swing.JComboBox<String> jComboBox_estadoDeuda;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

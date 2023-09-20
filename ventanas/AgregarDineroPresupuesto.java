@@ -197,6 +197,7 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
         jLabel_valoractual.setText("");
         jTextField_concepto.setText("");
         jTextField_valor.setText("");
+        jComboBox_tipoPartida.setSelectedIndex(0);
 
     }
 
@@ -639,6 +640,7 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
         jTextField_valor = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
+        jComboBox_tipoPartida = new javax.swing.JComboBox<>();
         jPanel3 = new javax.swing.JPanel();
         jButton_editar = new javax.swing.JButton();
         jTextField_partida = new javax.swing.JTextField();
@@ -713,7 +715,7 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                 .addComponent(jLabel2)
                 .addGap(18, 18, 18)
                 .addComponent(jTextField_descripcion, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(160, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -757,6 +759,8 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
             }
         });
 
+        jComboBox_tipoPartida.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { " ", "Prestamo" }));
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -769,10 +773,12 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jTextField_valor, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jTextField_valor, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
+                .addComponent(jComboBox_tipoPartida, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(34, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -783,7 +789,8 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                     .addComponent(jTextField_concepto, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4)
                     .addComponent(jTextField_valor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1))
+                    .addComponent(jButton1)
+                    .addComponent(jComboBox_tipoPartida, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(17, Short.MAX_VALUE))
         );
 
@@ -947,14 +954,14 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                 .addGap(28, 28, 28)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 46, Short.MAX_VALUE)
                         .addComponent(jButton2_utilidad, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jScrollPane1)
-                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(72, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -989,6 +996,12 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
         if (!concepto.equals("") && !valor.equals("")) {
             //Capturamos el resto de datos
 
+            //Determinamos el nombre de la partida en funcion de si es un prestamos o no
+            
+            if (jComboBox_tipoPartida.getSelectedItem().toString().trim().equals("Prestamo")) {
+                concepto="***Prestamo*** "+concepto;
+            } 
+            
             int opcion = JOptionPane.showConfirmDialog(this, "¿Desea registrar una partida de " + MetodosGenerales.ConvertirIntAMoneda(valorDouble) + " al presupuesto " + idPresupuesto + " - "
                     + descripcion + "?");
             if (opcion == 0) {
@@ -1305,6 +1318,7 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
     private javax.swing.JButton jButton_calcular;
     private javax.swing.JButton jButton_editar;
     private javax.swing.JButton jButton_eliminar;
+    private javax.swing.JComboBox<String> jComboBox_tipoPartida;
     private com.toedter.calendar.JDateChooser jDateChooser_fecha;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

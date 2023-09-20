@@ -1,5 +1,6 @@
 package clases;
 
+import com.mysql.cj.protocol.Resultset;
 import java.awt.Desktop;
 import java.awt.HeadlessException;
 import java.io.File;
@@ -8,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -309,8 +311,8 @@ public class MetodosGenerales {
 
         String remitente = "infograficasjireh@gmail.com";
         String contraseña = "enuupmhmgcebjubf";
-        //String destinatario = "eperez.alean@gmail.com";
-        String destinatario = "infograficasjireh@gmail.com";
+        String destinatario = "eperez.alean@gmail.com";
+        //String destinatario = "infograficasjireh@gmail.com";
 
         Properties p = new Properties();
         p.put("mail.smtp.host", "smtp.gmail.com");
@@ -339,8 +341,8 @@ public class MetodosGenerales {
 
         String remitente = "infograficasjireh@gmail.com";
         String contraseña = "enuupmhmgcebjubf";
-        //String destinatario = "eperez.alean@gmail.com";
-        String destinatario = "infograficasjireh@gmail.com";
+        String destinatario = "eperez.alean@gmail.com";
+        //String destinatario = "infograficasjireh@gmail.com";
         
         Properties p = new Properties();
         p.put("mail.smtp.host", "smtp.gmail.com");
@@ -403,8 +405,27 @@ public class MetodosGenerales {
     public static void main(String[] args) {
 
         //System.out.println(encriptarContraseña("Luis"));
-        String frase="(PROVISIONAL) UTILIDAD DEL PERIODO ANTERIOR 4 - SEPTIEMBRE 2022";
-        System.out.println(frase.substring(0, 13));
+        String frase="***Prestamo*** EJEMPLO 4";
+        frase = frase.substring(15, frase.length());
+        System.out.println(frase);
+
+        //System.out.println(Double.parseDouble(""));
+//        
+//        try {
+//            String consulta="select saldo from partidaspresupuestos where id=3";
+//            
+//            Connection cn = Conexion.Conectar();
+//            PreparedStatement pst = cn.prepareStatement(consulta);
+//            
+//            ResultSet rs = pst.executeQuery();
+//            
+//            if (rs.next()) {
+//                System.out.println(rs.getString("saldo"));
+//            }
+//            
+//                    
+//        } catch (Exception e) {
+//        }
     }
 
 }
