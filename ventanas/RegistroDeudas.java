@@ -52,6 +52,8 @@ public class RegistroDeudas extends javax.swing.JFrame {
     public void IniciarCaracteristicasGenerales() {
         llenarTablaPartidas();
         llenarTablaGastosDeudas();
+        jLabel_idPresupuestoDeudaPartida.setVisible(false);
+        jLabel_idPresupuestoGastoDeuda.setVisible(false);
         //jLabel_idPresupuesto.setVisible(false);
         //SettearDatos();
         //InhabilitarCampos();
@@ -167,7 +169,14 @@ public class RegistroDeudas extends javax.swing.JFrame {
 
     public void limpiarTablaPartidas(DefaultTableModel modelo) {
         for (int i = 0; i < jTable_partidas.getRowCount(); i++) {
-            this.modelo.removeRow(i);
+            modelo.removeRow(i);
+            i = i - 1;
+        }
+    }
+
+    public void limpiarTablaGastosDeudad(DefaultTableModel modelo1) {
+        for (int i = 0; i < jTable_gastosDeudas.getRowCount(); i++) {
+            modelo1.removeRow(i);
             i = i - 1;
         }
     }
@@ -282,9 +291,27 @@ public class RegistroDeudas extends javax.swing.JFrame {
 
         return valorPresupuestado;
     }
-    
-    public String ConsultarIdConcepto(String idGastoDeuda){
-        
+
+    public String ConsultarIdConcepto(String idGastoDeuda) {
+
+        String consulta = "select idConcepto from gastospresupuestos where id=?";
+
+        try {
+            Connection cn = Conexion.Conectar();
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setString(1, idGastoDeuda);
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("idConcepto");
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar el idConcepto", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public String ConsultarNombrePresup(String presup) {
@@ -416,44 +443,20 @@ public class RegistroDeudas extends javax.swing.JFrame {
             e.printStackTrace();
         }
     }
-    
-    public void RegistrarPagoGastoDeuda(String idPresupuesto, String fecha, int idconcepto, String factura,
-            double ValorAIngresar, String observaciones, String estado,
-            String registradoPor, String idPartida, String conceptoPartida, double saldoPartida) {
+
+    public void RegistrarPagoGastoDeuda(String idGastoDeuda, String observaciones) {
 
         try {
             //Registramos el gasto
-            String consulta = "insert into gastospresupuestos (idPrespuesto, fechaGasto, idConcepto, factura, valor, observaciones, estado, registradoPor) values "
-                    + "(?, ?, ?, ?, ?, ?, ?, ?)";
+            String consulta = "update gastospresupuestos set saldo=0, observaciones=? where id=?";
             Connection cn = Conexion.Conectar();
-            cn.setAutoCommit(false);
 
             PreparedStatement pst = cn.prepareStatement(consulta);
-            pst.setString(1, idPresupuesto);
-            pst.setString(2, fecha);
-            pst.setInt(3, idconcepto);
-            pst.setString(4, factura);
-            pst.setDouble(5, ValorAIngresar);
-            pst.setString(6, observaciones);
-            pst.setString(7, estado);
-            pst.setString(8, registradoPor);
-//            pst.setDouble(9, saldo);
 
+            pst.setString(1, observaciones);
+            pst.setString(2, idGastoDeuda);
             pst.executeUpdate();
 
-            //Registramos cuanto de saldo le queda al prestamos
-            String consulta2 = "update partidaspresupuestos set concepto=?, saldo=? where id=?";
-            //Redefinimos el concepto de la partida ya que deja de ser una deuda
-            String conceptoPartidaModificado = "(PAGADO) " + conceptoPartida.substring(15, conceptoPartida.length());
-
-            PreparedStatement pst2 = cn.prepareStatement(consulta2);
-            pst2.setString(1, conceptoPartidaModificado);
-            pst2.setDouble(2, saldoPartida);
-            pst2.setString(3, idPartida);
-
-            pst2.executeUpdate();
-
-            cn.commit();
             cn.close();
             JOptionPane.showMessageDialog(this, "Gasto registrado");
 
@@ -470,27 +473,26 @@ public class RegistroDeudas extends javax.swing.JFrame {
             e.printStackTrace();
         }
     }
-    
-    
-    public String ConsultarPresupGastoDeuda(String presupuestoGastoDeuda){
+
+    public String ConsultarPresupGastoDeuda(String presupuestoGastoDeuda) {
         String consulta = "select descripcion from presupuestos where idPresupuesto=?";
-        
+
         try {
-            Connection cn =Conexion.Conectar();
+            Connection cn = Conexion.Conectar();
             PreparedStatement pst = cn.prepareStatement(consulta);
             pst.setString(1, presupuestoGastoDeuda);
-            
+
             ResultSet rs = pst.executeQuery();
-            
+
             if (rs.next()) {
-                return rs.getString("descripcion");            }
-            
-            
+                return rs.getString("descripcion");
+            }
+
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error al consultar el nombre del presupuesto, contacte al administrador", "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
-        
+
         return null;
     }
 
@@ -926,12 +928,12 @@ public class RegistroDeudas extends javax.swing.JFrame {
 
     private void jTable_gastosDeudasMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable_gastosDeudasMouseClicked
         // TODO add your handling code here:        
-        int fila = jTable_partidas.getSelectedRow();
+        int fila = jTable_gastosDeudas.getSelectedRow();
         if (fila != -1) {
-            jTextField_idGastoDeuda.setText(jTable_partidas.getValueAt(fila, 0).toString());
-            jTextField_descripcionGastoDeuda.setText(jTable_partidas.getValueAt(fila, 3).toString());
-            jTextField_valorGastoDeuda.setText(jTable_partidas.getValueAt(fila, 4).toString());
-            jLabel_idPresupuestoGastoDeuda.setText(jTable_partidas.getValueAt(fila, 2).toString());
+            jTextField_idGastoDeuda.setText(jTable_gastosDeudas.getValueAt(fila, 0).toString());
+            jTextField_descripcionGastoDeuda.setText(jTable_gastosDeudas.getValueAt(fila, 3).toString());
+            jTextField_valorGastoDeuda.setText(jTable_gastosDeudas.getValueAt(fila, 4).toString());
+            jLabel_idPresupuestoGastoDeuda.setText(jTable_gastosDeudas.getValueAt(fila, 2).toString());
         } else {
             JOptionPane.showMessageDialog(this, "Seleccione un concepto");
         }
@@ -959,36 +961,32 @@ public class RegistroDeudas extends javax.swing.JFrame {
             //Consultamos el idConcepto del gasto
             String idConcepto = ConsultarIdConcepto(idGastoDeuda);
 
-
-            //Definimos la descripcionGastoDeuda con la que se registra el gasto, ya no debe decir adeudado
-            descripcionGastoDeuda = "(PAGO DEUDA PRESUP " + nombrePresupuestoGastoDeuda + ") " + descripcionGastoDeuda.substring(15, descripcionGastoDeuda.length());
-
             //Verificamos si esta haciendo un pago parcial o total
-            if ((double)valoraPagarGastoDeuda == (double)valorGastoDeuda) {
-
+            if ((double) valoraPagarGastoDeuda == (double) valorGastoDeuda) {
+                //Redefinimos el nombre de la deuda
+                descripcionGastoDeuda = descripcionGastoDeuda.substring(15, descripcionGastoDeuda.length());
                 int opcion = JOptionPane.showConfirmDialog(this, "¿Desea cancelar la deuda?\n\n***Se registrará como un gasto en el ultimo presupuesto***"
                         + "\n\n*** El gasto se registrará como: " + estado);
 
                 if (opcion == 0) {
 
-                    RegistrarPagoGastoDeuda(ultimoPresup, fecha, 71, comprobante, valoraPagarInt, descripcionGastoDeuda,
-                            estado, this.usuario, idGastoDeuda, descripcionPartida, 0d);
-                    limpiarTablaPartidas(modelo);
-                    llenarTablaPartidas();
+                    RegistrarPagoGastoDeuda(idGastoDeuda, descripcionGastoDeuda);
+                    limpiarTablaGastosDeudad(modelo1);
+                    llenarTablaGastosDeudas();
                     limpiarCampos();
 
                 } else {
                     JOptionPane.showMessageDialog(this, "El pago no ha sido registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
                 }
-            } else if ((double)valoraPagarGastoDeuda < (double)valorGastoDeuda) {
-
+            } else if ((double) valoraPagarGastoDeuda < (double) valorGastoDeuda) {
+                //tdescripcionGastoDeuda = descripcionGastoDeuda.substring(15, descripcionGastoDeuda.length());
                 int opcion = JOptionPane.showConfirmDialog(this, "¿Desea cancelar la deuda?\n\n***Se registrará como un gasto en el ultimo presupuesto***"
                         + "\n\n*** El gasto se registrará como: " + estado);
 
                 if (opcion == 0) {
 
-                    RegistrarGastoPagoParcial(ultimoPresup, fecha, 71, comprobante, valoraPagarInt, descripcionGastoDeuda,
-                            estado, this.usuario, idGastoDeuda, descripcionPartida, (valorDeudaInt - valoraPagarInt));
+                    //RegistrarGastoPagoParcial(ultimoPresup, fecha, 71, comprobante, valoraPagarInt, descripcionGastoDeuda,
+                    //estado, this.usuario, idGastoDeuda, descripcionPartida, (valorDeudaInt - valoraPagarInt));
                     limpiarTablaPartidas(modelo);
                     llenarTablaPartidas();
                     limpiarCampos();

@@ -405,7 +405,7 @@ public class MetodosGenerales {
     public static void main(String[] args) {
 
         //System.out.println(encriptarContraseña("Luis"));
-        String frase="***Prestamo*** EJEMPLO 4";
+        String frase="***Adeudado*** EJEMPLO 2";
         frase = frase.substring(15, frase.length());
         System.out.println(frase);
 
