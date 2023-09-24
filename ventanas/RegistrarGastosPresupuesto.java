@@ -266,9 +266,9 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
         return idConcepto;
     }
 
-    public int ConsultarPresupuestado(String idpresupuesto, int idConcepto) {
+    public double ConsultarPresupuestado(String idpresupuesto, int idConcepto) {
 
-        int valorPresupuestado = -1;
+        double valorPresupuestado = -1;
         String consulta = "select valorPresupuestado from itemspresupuesto where idPresupuesto=? and idGasto=?";
 
         try {
@@ -281,7 +281,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
             ResultSet rs = pst.executeQuery();
 
             while (rs.next()) {
-                valorPresupuestado = rs.getInt("valorPresupuestado");
+                valorPresupuestado = rs.getDouble("valorPresupuestado");
             }
             cn.close();
         } catch (SQLException e) {
@@ -292,8 +292,8 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
         return valorPresupuestado;
     }
 
-    public int ConsultarSumaYaGastada(String idpresupuesto, int idConcepto) {
-        int yagastado = 0;
+    public double ConsultarSumaYaGastada(String idpresupuesto, int idConcepto) {
+        double yagastado = 0;
         String consulta = "select if(sum(gastospresupuestos.valor) is null, 0, sum(gastospresupuestos.valor)) "
                 + "as suma from gastospresupuestos where gastospresupuestos.idPrespuesto=? and "
                 + "gastospresupuestos.idConcepto=? and gastospresupuestos.estado='Registrado'";
@@ -307,7 +307,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
             ResultSet rs = pst.executeQuery();
 
             while (rs.next()) {
-                yagastado = rs.getInt("suma");
+                yagastado = rs.getDouble("suma");
             }
             cn.close();
         } catch (SQLException e) {
@@ -864,14 +864,14 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
             String descripcionGasto = jTextField_descripcionGasto.getText().trim().toUpperCase();
             String valor = jTextField_valor.getText().trim();
             String factura = jTextField_factura.getText().trim().toUpperCase();
-            int valorInt = Integer.parseInt(valor);
+            double valorDouble = Double.parseDouble(valor);
             String fecha = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 
             if (!descripcionGasto.equals("") && !valor.equals("") && !factura.equals("")) {
 
                 int idConcepto = ConsultarIdConcepto(concepto);
-                int valorPresupuestado = ConsultarPresupuestado(this.idPresupuesto, idConcepto);
-                int SumaYaGastado = ConsultarSumaYaGastada(this.idPresupuesto, idConcepto);
+                double valorPresupuestado = ConsultarPresupuestado(this.idPresupuesto, idConcepto);
+                double SumaYaGastado = ConsultarSumaYaGastada(this.idPresupuesto, idConcepto);
 
                 //Consultamos la fecha de cierre del presupuesto
                 try {
@@ -883,18 +883,24 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
 
                         //Verificamos que la suma a ingresar mas a suma ya gastada en ese concepto, no sea superior al 
                         //valor presupuestado
-                        if (valorInt + SumaYaGastado <= valorPresupuestado) {
+                        if (valorDouble + SumaYaGastado <= valorPresupuestado) {
 
                             //Verificamos si el usuario ha seleccionado una deuda para establecer el mensaje a mostrar en pantalla
                             String mensaje = "";
                             if (jComboBox_estadoDeuda.getSelectedItem().toString().trim().equals("Adeudado")) {
-                                descripcionGasto="***Adeudado*** "+descripcionGasto;
-                                mensaje = "¿Desea registrar un gasto por $" + valorInt
-                                        + " bajo la descripcion: " + descripcionGasto + " al concepto " + concepto + "?"
-                                        + "\n\n*** Tenga en cuenta que esta registrando una DEUDA ***";
+                                int opcion = JOptionPane.showConfirmDialog(this, "¿Desea registrar una deuda?");
+                                if (opcion == 1) {
+                                    RegistrarDeuda(fecha, this.idPresupuesto, idConcepto, valorDouble, descripcion,
+                                            factura, this.usuario);
+                                    limpiarCampos();
+                                    new RegistroDeudas(this.usuario, this.permiso).setVisible(true);
+
+                                } else {
+                                    JOptionPane.showMessageDialog(this, "No se ha registrado la deuda", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                                }
+
                             } else {
-                                mensaje = "¿Desea registrar un gasto por $" + valorInt
-                                        + " bajo la descripcion: " + descripcionGasto + " al concepto " + concepto + "?";
+
                             }
 
                             //Si el valor a ingresar mas lo ya gastado no supera el presupuesto, se  solicita confirmacion y 
@@ -917,7 +923,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                             String mensaje = "";
 
                             if (jComboBox_estadoDeuda.getSelectedItem().toString().trim().equals("Adeudado")) {
-                                descripcionGasto="***Adeudado*** "+descripcionGasto;
+                                descripcionGasto = "***Adeudado*** " + descripcionGasto;
                                 mensaje = "La suma de los gastos registrados por el concepto "
                                         + concepto + " supera el valor presupuestado($" + valorPresupuestado + "). ¿Desea pedir autorizacion para cargar el gasto de $"
                                         + valorInt + " a dicho concepto?"
@@ -950,7 +956,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                         String mensaje = "";
 
                         if (jComboBox_estadoDeuda.getSelectedItem().toString().trim().equals("Adeudado")) {
-                            descripcionGasto="***Adeudado*** "+descripcionGasto;
+                            descripcionGasto = "***Adeudado*** " + descripcionGasto;
                             mensaje = "Esta intentando registrar un gasto posterior a la fecha de cierre del presupuesto actual.\n"
                                     + "¿Desea registrar el gasto como 'Pendiente de autorizacion'?"
                                     + "\n\n ***Nota importante***: Tenga en cuenta que el gasto quedará registrado como PENDIENTE DE AUTORIZACION\n"

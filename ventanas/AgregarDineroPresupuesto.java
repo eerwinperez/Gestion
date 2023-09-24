@@ -113,10 +113,10 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
         }
     }
 
-    public void RegistrarPartida(String idPresupuesto, String concepto, String valor, String usuario) {
+    public void RegistrarPartida(String idPresupuesto, String concepto, String valor, String tipo, String usuario) {
 
-        String consulta = "insert into partidaspresupuestos (fecha, idPresupuesto, concepto, valor, registradoPor) "
-                + "values (?, ?, ?, ?, ?)";
+        String consulta = "insert into partidaspresupuestos (fecha, idPresupuesto, concepto, valor, tipo, registradoPor) "
+                + "values (?, ?, ?, ?, ?, ?)";
         try {
             Connection cn = Conexion.Conectar();
             PreparedStatement pst = cn.prepareStatement(consulta);
@@ -124,7 +124,8 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
             pst.setString(2, idPresupuesto);
             pst.setString(3, concepto);
             pst.setString(4, valor);
-            pst.setString(5, usuario);
+            pst.setString(5, tipo);
+            pst.setString(6, usuario);
 
             pst.executeUpdate();
             cn.close();
@@ -371,8 +372,6 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
 //                    System.out.println("EE: "+ingresosEntradasDiarias);
 //                    System.out.println("Fact: "+ingresosFacturas);
 //                    System.out.println("Gastos: "+gastos);
-                    
-                    
                     elemento[5] = partidas + ingresosEntradasDiarias + ingresosFacturas - gastos;
 
                     return elemento;
@@ -594,6 +593,27 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
         return null;
     }
 
+    public boolean ComprobarPagosPartida(String idPartida) {
+
+        String consulta = "select valor from gastospresupuestos where idPartida =?";
+        try {
+            Connection cn = Conexion.Conectar();
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            
+            pst.setString(1, idPartida);
+            
+            ResultSet rs = pst.executeQuery();
+            
+            if (rs.next()) {
+                return false;
+            }
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,"Error al consultar si la partida tiene gastos registrados ComprobarPagosPartida()", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return true;
+    }
+
     public String consultarNombrePartidaUtilida(String idPartidaUtilidad) {
 
         String consulta = "select concepto from partidaspresupuestos where id=?";
@@ -616,7 +636,7 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
 
         return null;
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -991,17 +1011,19 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
 
         String concepto = jTextField_concepto.getText().trim().toUpperCase();
         String valor = jTextField_valor.getText().trim();
+        String tipo = "";
         double valorDouble = Double.parseDouble(valor);
         //Validamos que todos los campos hayan sido completados
         if (!concepto.equals("") && !valor.equals("")) {
             //Capturamos el resto de datos
 
             //Determinamos el nombre de la partida en funcion de si es un prestamos o no
-            
             if (jComboBox_tipoPartida.getSelectedItem().toString().trim().equals("Prestamo")) {
-                concepto="***Prestamo*** "+concepto;
-            } 
-            
+                tipo = "Prestamo";
+            } else {
+                tipo = "Ingreso";
+            }
+
             int opcion = JOptionPane.showConfirmDialog(this, "¿Desea registrar una partida de " + MetodosGenerales.ConvertirIntAMoneda(valorDouble) + " al presupuesto " + idPresupuesto + " - "
                     + descripcion + "?");
             if (opcion == 0) {
@@ -1010,7 +1032,7 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
                 String conceptoSistema = "UTILIDAD DEL PERIODO ANTERIOR " + infoPresup[0] + " " + infoPresup[1];
 
                 if (!concepto.equalsIgnoreCase(conceptoSistema)) {
-                    RegistrarPartida(idPresupuesto, concepto, valor, this.usuario);
+                    RegistrarPartida(idPresupuesto, concepto, valor, tipo, this.usuario);
                     limpiarTabla(modelo);
                     llenarTabla();
                     limpiarCampos();
@@ -1076,7 +1098,6 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
 //                    jButton_editar.setEnabled(true);
 //                    jButton_eliminar.setEnabled(true);
 //                }
-
             } catch (StringIndexOutOfBoundsException e) {
                 jTextField_partida.setEnabled(true);
             } catch (Exception e) {
@@ -1223,25 +1244,33 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
     private void jButton_eliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_eliminarActionPerformed
 
         //Verificamos que se haya seleccionado una partida
-        String idPpartid = jTextField_idpartida.getText().trim();
+        String idPartida = jTextField_idpartida.getText().trim();
         String presupuesto = jTextField_descripcion.getText().trim();
         String valor = jLabel_valoractual.getText().trim();
-        if (!idPpartid.equals("")) {
-            //Pedir confirmacion
-            int opcion = JOptionPane.showConfirmDialog(this, "¿Desea eliminar la partida " + idPpartid + "?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
-            if (opcion == 0) {
+        if (!idPartida.equals("")) {
 
-                String razon = JOptionPane.showInputDialog(this, "Indique la razon por la que elimina esta partida", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+            //Verificamos que esa partida si es prestamo no tenga abonos hechos
+            if (ComprobarPagosPartida(idPartida)) {
 
-                if (!razon.equals("")) {
-                    EliminarPartida(idPpartid, presupuesto, valor, razon);
-                    limpiarCampos();
-                    limpiarTabla(modelo);
-                    llenarTabla();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Indique la razon por la que elimina esta partida", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                //Pedir confirmacion
+                int opcion = JOptionPane.showConfirmDialog(this, "¿Desea eliminar la partida " + idPartida + "?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
+                if (opcion == 0) {
+
+                    String razon = JOptionPane.showInputDialog(this, "Indique la razon por la que elimina esta partida", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+
+                    if (!razon.equals("")) {
+                        EliminarPartida(idPartida, presupuesto, valor, razon);
+                        limpiarCampos();
+                        limpiarTabla(modelo);
+                        llenarTabla();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Indique la razon por la que elimina esta partida", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                    }
+
                 }
 
+            } else {
+                JOptionPane.showMessageDialog(this, "No es posible eliminar la partida seleccionada ya que tiene abonos registrados", "Error", JOptionPane.ERROR_MESSAGE);
             }
 
         } else {

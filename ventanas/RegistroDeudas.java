@@ -105,7 +105,12 @@ public class RegistroDeudas extends javax.swing.JFrame {
 
         modelo = (DefaultTableModel) jTable_partidas.getModel();
 
-        String consulta = "SELECT id, fecha, idPresupuesto, concepto, valor, saldo from partidaspresupuestos where concepto like '***Prestamo***%'";
+        String consulta = "select p.id, p.fecha, p.idPresupuesto, p.concepto, ifnull(p.valor -SUM(g.valor), p.valor) as saldo\n"
+                + "from partidaspresupuestos p left join gastospresupuestos g on p.id=g.idPartida\n"
+                + "where p.tipo='Prestamo'\n"
+                + "group by p.id\n"
+                + "having saldo >0\n"
+                + "order by p.id asc";
 
         try {
             Connection cn = Conexion.Conectar();
@@ -116,15 +121,11 @@ public class RegistroDeudas extends javax.swing.JFrame {
 
             while (rs.next()) {
                 Object[] nuevo = new Object[5];
-                nuevo[0] = rs.getString("id");
-                nuevo[1] = rs.getString("fecha");
-                nuevo[2] = rs.getString("idPresupuesto");
-                nuevo[3] = rs.getString("concepto");
-                if (rs.getString("saldo") == null) {
-                    nuevo[4] = ConvertirIntAMoneda(Double.parseDouble(rs.getString("valor")));
-                } else {
-                    nuevo[4] = ConvertirIntAMoneda(Double.parseDouble(rs.getString("saldo")));
-                }
+                nuevo[0] = rs.getString("p.id");
+                nuevo[1] = rs.getString("p.fecha");
+                nuevo[2] = rs.getString("p.idPresupuesto");
+                nuevo[3] = rs.getString("p.concepto");
+                nuevo[4] = ConvertirIntAMoneda(Double.parseDouble(rs.getString("saldo")));
 
                 modelo.addRow(nuevo);
             }
@@ -336,45 +337,34 @@ public class RegistroDeudas extends javax.swing.JFrame {
         return null;
     }
 
-    public void RegistrarGastoPagoCompleto(String idPresupuesto, String fecha, int idconcepto, String factura,
-            double ValorAIngresar, String observaciones, String estado,
-            String registradoPor, String idPartida, String conceptoPartida, double saldoPartida) {
+    public void RegistrarPagoPrestamoPartida(String ultimoPresup, int idConcepto, String idPartida, double valor,
+            String descripcion,
+            String estado, String comprobante, String usuario) {
 
         try {
             //Registramos el gasto
-            String consulta = "insert into gastospresupuestos (idPrespuesto, fechaGasto, idConcepto, factura, valor, observaciones, estado, registradoPor) values "
-                    + "(?, ?, ?, ?, ?, ?, ?, ?)";
+            String consulta = "insert into gastospresupuestos (fechaGasto, idPrespuesto, idConcepto, idPartida, valor, "
+                    + "observaciones, "
+                    + "estado, factura, registradoPor) \n"
+                    + "values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String fecha = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
             Connection cn = Conexion.Conectar();
-            cn.setAutoCommit(false);
 
             PreparedStatement pst = cn.prepareStatement(consulta);
-            pst.setString(1, idPresupuesto);
-            pst.setString(2, fecha);
-            pst.setInt(3, idconcepto);
-            pst.setString(4, factura);
-            pst.setDouble(5, ValorAIngresar);
-            pst.setString(6, observaciones);
+            pst.setString(1, fecha);
+            pst.setString(2, ultimoPresup);
+            pst.setInt(3, idConcepto);
+            pst.setString(4, idPartida);
+            pst.setDouble(5, valor);
+            pst.setString(6, descripcion);
             pst.setString(7, estado);
-            pst.setString(8, registradoPor);
-//            pst.setDouble(9, saldo);
+            pst.setString(8, comprobante);
+            pst.setString(9, usuario);
 
             pst.executeUpdate();
 
-            //Registramos cuanto de saldo le queda al prestamos
-            String consulta2 = "update partidaspresupuestos set concepto=?, saldo=? where id=?";
-            //Redefinimos el concepto de la partida ya que deja de ser una deuda
-            String conceptoPartidaModificado = "(PAGADO) " + conceptoPartida.substring(15, conceptoPartida.length());
-
-            PreparedStatement pst2 = cn.prepareStatement(consulta2);
-            pst2.setString(1, conceptoPartidaModificado);
-            pst2.setDouble(2, saldoPartida);
-            pst2.setString(3, idPartida);
-
-            pst2.executeUpdate();
-
-            cn.commit();
             cn.close();
-            JOptionPane.showMessageDialog(this, "Gasto registrado");
+            JOptionPane.showMessageDialog(this, "Gasto registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
 
         } catch (SQLIntegrityConstraintViolationException e) {
             JOptionPane.showMessageDialog(this, "Error."
@@ -815,7 +805,6 @@ public class RegistroDeudas extends javax.swing.JFrame {
         //Verificamos que se haya seleccionado una partida
         String idPartida = jTextField_idDeudaPartida.getText().trim();
         String descripcion = jTextField_descripcionPrestamo.getText().trim();
-        String descripcionPartida = jTextField_descripcionPrestamo.getText().trim();
         String verificacionvaloraPagar = jTextField_valoraPagar.getText().trim();
         String comprobante = jTextField_comprobantedePago.getText().trim();
         String idPresupuesto = jLabel_idPresupuestoDeudaPartida.getText().trim();
@@ -825,50 +814,28 @@ public class RegistroDeudas extends javax.swing.JFrame {
 
             //Verificamos que haya concepto de presupuesto para poder cargar en el el gasto            
             if (VerificarConcepto(71, idPresupuesto)) {
-                //System.out.println(VerificarConcepto(71));
+
                 //Verificamos si el valor excede el presupuesto
-                double valoraPagarInt = Double.parseDouble(jTextField_valoraPagar.getText().trim());
-                double valorDeudaInt = Math.abs(Double.parseDouble(MetodosGenerales.ConvertirMonedaAInt(jTextField_valorPartida.getText().trim())));
-//                System.out.println("Valor a pagar " + valoraPagarInt);
-//                System.out.println("Valor deuda " + valorDeudaInt);
+                double valoraPagar = Double.parseDouble(jTextField_valoraPagar.getText().trim());
+                double valorDeuda = Math.abs(Double.parseDouble(MetodosGenerales.ConvertirMonedaAInt(jTextField_valorPartida.getText().trim())));
+//                System.out.println("Valor a pagar " + valoraPagar);
+//                System.out.println("Valor deuda " + valorDeuda);
                 String ultimoPresup = consultarPresupuesto();
-                String nombrePresup = ConsultarNombrePresup(ultimoPresup);
-                double SumaYaGastado = ConsultarSumaYaGastada(ultimoPresup, 71);
-                String nombrePresupuestoGastoDeuda = ConsultarPresupGastoDeuda(idPresupuesto);
-                double valorPresupuestado = ConsultarPresupuestado(ultimoPresup, 71);
-                String fecha = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
                 //Todos los pagos de deuda requieren autorizacion
                 String estado = "Por Autorizar";
 
                 //Definimos la descripcionGastoDeuda con la que se registra el gasto, ya no debe decir adeudado
-                descripcion = "(PAGO PRESTAMO PRESUP " + nombrePresupuestoGastoDeuda + ") " + descripcion.substring(15, descripcion.length());
+                descripcion = "PAGO " + descripcion;
 
                 //Verificamos si esta haciendo un pago parcial o total
-                if (valoraPagarInt == valorDeudaInt) {
+                if (valoraPagar <= valorDeuda) {
 
                     int opcion = JOptionPane.showConfirmDialog(this, "¿Desea cancelar la deuda?\n\n***Se registrará como un gasto en el ultimo presupuesto***"
                             + "\n\n*** El gasto se registrará como: " + estado);
 
                     if (opcion == 0) {
 
-                        RegistrarGastoPagoCompleto(ultimoPresup, fecha, 71, comprobante, valoraPagarInt, descripcion,
-                                estado, this.usuario, idPartida, descripcionPartida, 0d);
-                        limpiarTablaPartidas(modelo);
-                        llenarTablaPartidas();
-                        limpiarCampos();
-
-                    } else {
-                        JOptionPane.showMessageDialog(this, "El pago no ha sido registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
-                    }
-                } else if (valoraPagarInt < valorDeudaInt) {
-
-                    int opcion = JOptionPane.showConfirmDialog(this, "¿Desea cancelar la deuda?\n\n***Se registrará como un gasto en el ultimo presupuesto***"
-                            + "\n\n*** El gasto se registrará como: " + estado);
-
-                    if (opcion == 0) {
-
-                        RegistrarGastoPagoParcial(ultimoPresup, fecha, 71, comprobante, valoraPagarInt, descripcion,
-                                estado, this.usuario, idPartida, descripcionPartida, (valorDeudaInt - valoraPagarInt));
+                        RegistrarPagoPrestamoPartida(ultimoPresup, 71, idPartida, valoraPagar, descripcion, estado, comprobante, this.usuario);
                         limpiarTablaPartidas(modelo);
                         llenarTablaPartidas();
                         limpiarCampos();
@@ -985,8 +952,8 @@ public class RegistroDeudas extends javax.swing.JFrame {
 
                 if (opcion == 0) {
 
-                    //RegistrarGastoPagoParcial(ultimoPresup, fecha, 71, comprobante, valoraPagarInt, descripcionGastoDeuda,
-                    //estado, this.usuario, idGastoDeuda, descripcionPartida, (valorDeudaInt - valoraPagarInt));
+//                    RegistrarPagoGastoDeudaParcial(ultimoPresup, fecha, 71, comprobante, valoraPagar, descripcionGastoDeuda,
+//                    estado, this.usuario, idGastoDeuda, descripcionPartida, (valorDeuda - valoraPagar));
                     limpiarTablaPartidas(modelo);
                     llenarTablaPartidas();
                     limpiarCampos();
