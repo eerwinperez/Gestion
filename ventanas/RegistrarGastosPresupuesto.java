@@ -179,7 +179,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
         jLabel3_fila.setVisible(false);
     }
 
-    public void RegistrarGasto(String idPresupuesto, String fecha, int idconcepto, String factura, int ValorAIngresar, String observaciones, String estado, String registradoPor) {
+    public void RegistrarGasto(String idPresupuesto, String fecha, int idconcepto, String factura, double ValorAIngresar, String observaciones, String estado, String registradoPor) {
 
         String consulta = "insert into gastospresupuestos (idPrespuesto, fechaGasto, idConcepto, factura, valor, observaciones, estado, registradoPor) values "
                 + "(?, ?, ?, ?, ?, ?, ?, ?)";
@@ -191,7 +191,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
             pst.setString(2, fecha);
             pst.setInt(3, idconcepto);
             pst.setString(4, factura);
-            pst.setInt(5, ValorAIngresar);
+            pst.setDouble(5, ValorAIngresar);
             pst.setString(6, observaciones);
             pst.setString(7, estado);
             pst.setString(8, registradoPor);
@@ -555,6 +555,33 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
 
     }
 
+    public void RegistrarDeuda(String fecha, String idPresupuesto, int idConcepto, double valorDouble, String descripcionGasto,
+            String factura, String usuario) {
+
+        String consulta = "insert into deudas (fecha, idPresupuesto, idConcepto, valor, descripcion, factura, registradoPor)\n"
+                + "values (?, ?, ?, ?, ?, ?, ?)";
+
+        try {
+            Connection cn = Conexion.Conectar();
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setString(1, fecha);
+            pst.setString(2, idPresupuesto);
+            pst.setInt(3, idConcepto);
+            pst.setDouble(4, valorDouble);
+            pst.setString(5, descripcionGasto);
+            pst.setString(6, factura);
+            pst.setString(7, usuario);
+
+            pst.execute();
+            JOptionPane.showMessageDialog(this, "Deuda registrada", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+            
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al registrar la deuda RegistrarDeuda()", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -859,6 +886,7 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
 
         //Validamos que se haya seleccionado un concepto de la lista
         String concepto = jComboBox_conceptos.getSelectedItem().toString().trim();
+        
         if (!concepto.equals("")) {
             //Verificamos que se haya completado el valor y la descripcion del gasto
             String descripcionGasto = jTextField_descripcionGasto.getText().trim().toUpperCase();
@@ -873,75 +901,87 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                 double valorPresupuestado = ConsultarPresupuestado(this.idPresupuesto, idConcepto);
                 double SumaYaGastado = ConsultarSumaYaGastada(this.idPresupuesto, idConcepto);
 
-                //Consultamos la fecha de cierre del presupuesto
-                try {
-                    String fechaFin = consultarFechaFin(this.idPresupuesto);
-                    Date fechaFinDate = new SimpleDateFormat("yyyy-MM-dd").parse(fechaFin);
-                    Date fechaGasto = new SimpleDateFormat("yyyy-MM-dd").parse(fecha);
+                if (jComboBox_estadoDeuda.getSelectedItem().toString().trim().equals("Adeudado")) {
 
-                    if (fechaGasto.equals(fechaFinDate) || fechaGasto.before(fechaFinDate)) {
+                    int opcion = JOptionPane.showConfirmDialog(this, "¿Desea registrar una deuda?");
+                    if (opcion == 0) {
+                        RegistrarDeuda(fecha, this.idPresupuesto, idConcepto, valorDouble, descripcionGasto,
+                                factura, this.usuario);
+                        limpiarCampos();
+                        new RegistroDeudas(this.usuario, this.permiso).setVisible(true);
 
-                        //Verificamos que la suma a ingresar mas a suma ya gastada en ese concepto, no sea superior al 
-                        //valor presupuestado
-                        if (valorDouble + SumaYaGastado <= valorPresupuestado) {
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se ha registrado la deuda", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                    }
 
-                            //Verificamos si el usuario ha seleccionado una deuda para establecer el mensaje a mostrar en pantalla
-                            String mensaje = "";
-                            if (jComboBox_estadoDeuda.getSelectedItem().toString().trim().equals("Adeudado")) {
-                                int opcion = JOptionPane.showConfirmDialog(this, "¿Desea registrar una deuda?");
-                                if (opcion == 1) {
-                                    RegistrarDeuda(fecha, this.idPresupuesto, idConcepto, valorDouble, descripcion,
-                                            factura, this.usuario);
+                } else {
+
+                    //Consultamos la fecha de cierre del presupuesto
+                    try {
+                        String fechaFin = consultarFechaFin(this.idPresupuesto);
+                        Date fechaFinDate = new SimpleDateFormat("yyyy-MM-dd").parse(fechaFin);
+                        Date fechaGasto = new SimpleDateFormat("yyyy-MM-dd").parse(fecha);
+
+                        if (fechaGasto.equals(fechaFinDate) || fechaGasto.before(fechaFinDate)) {
+
+                            //Verificamos que la suma a ingresar mas a suma ya gastada en ese concepto, no sea superior al 
+                            //valor presupuestado
+                            if (valorDouble + SumaYaGastado <= valorPresupuestado) {
+
+                                //Verificamos si el usuario ha seleccionado una deuda para establecer el mensaje a mostrar en pantalla
+                                String mensaje = "";
+
+                                //Si el valor a ingresar mas lo ya gastado no supera el presupuesto, se  solicita confirmacion y 
+                                //registra el gasto
+                                int confirmacion = JOptionPane.showConfirmDialog(this, mensaje, "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
+
+                                if (confirmacion == 0) {
+                                    String estado = "Registrado";
+                                    RegistrarGasto(this.idPresupuesto, fecha, idConcepto, factura, valorDouble, descripcionGasto, estado, this.usuario);
+                                    limpiarTabla(modelo);
+                                    llenarTabla(idPresupuesto);
                                     limpiarCampos();
-                                    new RegistroDeudas(this.usuario, this.permiso).setVisible(true);
 
                                 } else {
-                                    JOptionPane.showMessageDialog(this, "No se ha registrado la deuda", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                                    JOptionPane.showMessageDialog(this, "Gasto no registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
                                 }
 
                             } else {
+                                //Verificamos si el usuario ha seleccionado una deuda para establecer el mensaje a mostrar en pantalla
+                                String mensaje ="La suma de los gastos registrados por el concepto "
+                                            + concepto + " supera el valor presupuestado($" + valorPresupuestado + "). ¿Desea pedir autorizacion para cargar el gasto de $"
+                                            + valorDouble + " a dicho concepto?";
 
-                            }
+                                //Le preguntamos al usuario si quiere pedir autorizacion de la gerencia para registrar un gasto
+                                //que en suma supera el valor de los presupuestado
+                                int eleccion = JOptionPane.showConfirmDialog(this, mensaje, "Informacion", JOptionPane.INFORMATION_MESSAGE);
 
-                            //Si el valor a ingresar mas lo ya gastado no supera el presupuesto, se  solicita confirmacion y 
-                            //registra el gasto
-                            int confirmacion = JOptionPane.showConfirmDialog(this, mensaje, "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
+                                if (eleccion == 0) {
 
-                            if (confirmacion == 0) {
-                                String estado = "Registrado";
-                                RegistrarGasto(this.idPresupuesto, fecha, idConcepto, factura, valorInt, descripcionGasto, estado, this.usuario);
-                                limpiarTabla(modelo);
-                                llenarTabla(idPresupuesto);
-                                limpiarCampos();
-
-                            } else {
-                                JOptionPane.showMessageDialog(this, "Gasto no registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                                    String estado = "Por Autorizar";
+                                    RegistrarGasto(this.idPresupuesto, fecha, idConcepto, factura, valorDouble, descripcionGasto, estado, this.usuario);
+                                    limpiarTabla(modelo);
+                                    llenarTabla(idPresupuesto);
+                                    limpiarCampos();
+                                } else {
+                                    JOptionPane.showMessageDialog(this, "Gasto no registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                                }
                             }
 
                         } else {
-                            //Verificamos si el usuario ha seleccionado una deuda para establecer el mensaje a mostrar en pantalla
-                            String mensaje = "";
 
-                            if (jComboBox_estadoDeuda.getSelectedItem().toString().trim().equals("Adeudado")) {
-                                descripcionGasto = "***Adeudado*** " + descripcionGasto;
-                                mensaje = "La suma de los gastos registrados por el concepto "
-                                        + concepto + " supera el valor presupuestado($" + valorPresupuestado + "). ¿Desea pedir autorizacion para cargar el gasto de $"
-                                        + valorInt + " a dicho concepto?"
-                                        + "\n\n*** Tenga en cuenta que esta registrando una DEUDA ***";
-                            } else {
-                                mensaje = "La suma de los gastos registrados por el concepto "
-                                        + concepto + " supera el valor presupuestado($" + valorPresupuestado + "). ¿Desea pedir autorizacion para cargar el gasto de $"
-                                        + valorInt + " a dicho concepto?";
-                            }
+                            String mensaje ="Esta intentando registrar un gasto posterior a la fecha de cierre del presupuesto actual.\n"
+                                        + "¿Desea registrar el gasto como 'Pendiente de autorizacion'?"
+                                        + "\n\n ***Nota importante***: Tenga en cuenta que el gasto quedará registrado como PENDIENTE DE AUTORIZACION\n"
+                                        + "Cuando el Gerente autorice el gasto se deberán revisar todos los presupuestos hacia adelante ya que se verán afectados por el \n"
+                                        + "registro de un gasto posterior al cierre del mes en cuestión";
+                            
 
-                            //Le preguntamos al usuario si quiere pedir autorizacion de la gerencia para registrar un gasto
-                            //que en suma supera el valor de los presupuestado
-                            int eleccion = JOptionPane.showConfirmDialog(this, mensaje, "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                            int opc = JOptionPane.showConfirmDialog(this, mensaje, "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
 
-                            if (eleccion == 0) {
-
+                            if (opc == 0) {
                                 String estado = "Por Autorizar";
-                                RegistrarGasto(this.idPresupuesto, fecha, idConcepto, factura, valorInt, descripcionGasto, estado, this.usuario);
+                                RegistrarGasto(this.idPresupuesto, fecha, idConcepto, factura, valorDouble, descripcionGasto, estado, this.usuario);
                                 limpiarTabla(modelo);
                                 llenarTabla(idPresupuesto);
                                 limpiarCampos();
@@ -949,43 +989,10 @@ public class RegistrarGastosPresupuesto extends javax.swing.JFrame {
                                 JOptionPane.showMessageDialog(this, "Gasto no registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
                             }
                         }
-
-                    } else {
-
-                        //Verificamos si el usuario ha seleccionado una deuda para establecer el mensaje a mostrar en pantalla
-                        String mensaje = "";
-
-                        if (jComboBox_estadoDeuda.getSelectedItem().toString().trim().equals("Adeudado")) {
-                            descripcionGasto = "***Adeudado*** " + descripcionGasto;
-                            mensaje = "Esta intentando registrar un gasto posterior a la fecha de cierre del presupuesto actual.\n"
-                                    + "¿Desea registrar el gasto como 'Pendiente de autorizacion'?"
-                                    + "\n\n ***Nota importante***: Tenga en cuenta que el gasto quedará registrado como PENDIENTE DE AUTORIZACION\n"
-                                    + "Cuando el Gerente autorice el gasto se deberán revisar todos los meses hacia adelante ya que se verán afectados por el \n"
-                                    + "registro de un gasto posterior al cierre del mes en cuestión"
-                                    + "\n\n*** Tenga en cuenta que esta registrando una DEUDA ***";
-                        } else {
-                            mensaje = "Esta intentando registrar un gasto posterior a la fecha de cierre del presupuesto actual.\n"
-                                    + "¿Desea registrar el gasto como 'Pendiente de autorizacion'?"
-                                    + "\n\n ***Nota importante***: Tenga en cuenta que el gasto quedará registrado como PENDIENTE DE AUTORIZACION\n"
-                                    + "Cuando el Gerente autorice el gasto se deberán revisar todos los meses hacia adelante ya que se verán afectados por el \n"
-                                    + "registro de un gasto posterior al cierre del mes en cuestión";
-                        }
-
-                        int opc = JOptionPane.showConfirmDialog(this, mensaje, "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
-
-                        if (opc == 0) {
-                            String estado = "Por Autorizar";
-                            RegistrarGasto(this.idPresupuesto, fecha, idConcepto, factura, valorInt, descripcionGasto, estado, this.usuario);
-                            limpiarTabla(modelo);
-                            llenarTabla(idPresupuesto);
-                            limpiarCampos();
-                        } else {
-                            JOptionPane.showMessageDialog(this, "Gasto no registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
-                        }
+                    } catch (HeadlessException | ParseException e) {
+                        JOptionPane.showMessageDialog(this, "Error al parsear las fechas", "Error", JOptionPane.ERROR_MESSAGE);
+                        e.printStackTrace();
                     }
-                } catch (HeadlessException | ParseException e) {
-                    JOptionPane.showMessageDialog(this, "Error al parsear las fechas", "Error", JOptionPane.ERROR_MESSAGE);
-                    e.printStackTrace();
                 }
 
             } else {
