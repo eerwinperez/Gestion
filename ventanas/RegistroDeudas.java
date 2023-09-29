@@ -48,6 +48,10 @@ public class RegistroDeudas extends javax.swing.JFrame {
         initComponents();
         ConfiguracionGralJFrame();
         IniciarCaracteristicasGenerales();
+
+        if (!permiso.equalsIgnoreCase("Gerente")) {
+            jButton_eliminarDeuda.setEnabled(false);
+        }
     }
 
     public void IniciarCaracteristicasGenerales() {
@@ -55,6 +59,10 @@ public class RegistroDeudas extends javax.swing.JFrame {
         llenarTablaGastosDeudas();
         jLabel_idPresupuestoDeudaPartida.setVisible(false);
         jLabel_idPresupuestoGastoDeuda.setVisible(false);
+
+    }
+
+    public void InhabilitarSegunPermiso() {
 
     }
 
@@ -94,6 +102,7 @@ public class RegistroDeudas extends javax.swing.JFrame {
             cn.close();
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error en leer las deudas de las partidas");
+            e.printStackTrace();
         }
 
     }
@@ -135,6 +144,7 @@ public class RegistroDeudas extends javax.swing.JFrame {
             cn.close();
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Error en leer las deudas de las partidas");
+            e.printStackTrace();
         }
     }
 
@@ -199,12 +209,13 @@ public class RegistroDeudas extends javax.swing.JFrame {
     }
 
     public boolean VerificarConcepto(int idConcepto, String idPresupuesto) {
-        String consulta = "select id from itemspresupuesto where idPresupuesto=? and idGasto=71";
+        String consulta = "select id from itemspresupuesto where idPresupuesto=? and idGasto=?";
 
         try {
             Connection cn = Conexion.Conectar();
             PreparedStatement pst = cn.prepareStatement(consulta);
             pst.setString(1, idPresupuesto);
+            pst.setInt(2, idConcepto);
 
             ResultSet rs = pst.executeQuery();
 
@@ -463,6 +474,7 @@ public class RegistroDeudas extends javax.swing.JFrame {
     }
 
     public String ConsultarPresupGastoDeuda(String presupuestoGastoDeuda) {
+
         String consulta = "select descripcion from presupuestos where idPresupuesto=?";
 
         try {
@@ -545,6 +557,29 @@ public class RegistroDeudas extends javax.swing.JFrame {
 
     }
 
+    public boolean VerificarSiHayGasto(String idGasto) {
+
+        String consulta = "SELECT valor from gastospresupuestos where idDeuda=?";
+
+        Connection cn = Conexion.Conectar();
+
+        try {
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setString(1, idGasto);
+
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                return false;
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar los abonos de la deuda VerificarSiHayGasto()", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return true;
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -581,6 +616,7 @@ public class RegistroDeudas extends javax.swing.JFrame {
         jTextField_comprobantePagoGastoDeuda = new javax.swing.JTextField();
         jButton_pagarGastoDeuda = new javax.swing.JButton();
         jLabel_idPresupuestoGastoDeuda = new javax.swing.JLabel();
+        jButton_eliminarDeuda = new javax.swing.JButton();
         jLabel_idPresupuestoDeudaPartida = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -729,7 +765,7 @@ public class RegistroDeudas extends javax.swing.JFrame {
             jTable_gastosDeudas.getColumnModel().getColumn(4).setPreferredWidth(200);
         }
 
-        jLabel5.setText("Id gasto");
+        jLabel5.setText("Id deuda");
 
         jTextField_idGastoDeuda.setEnabled(false);
 
@@ -751,6 +787,13 @@ public class RegistroDeudas extends javax.swing.JFrame {
         });
 
         jLabel_idPresupuestoGastoDeuda.setText("jLabel7");
+
+        jButton_eliminarDeuda.setText("Eliminar");
+        jButton_eliminarDeuda.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton_eliminarDeudaActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -777,12 +820,14 @@ public class RegistroDeudas extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel9)
                         .addGap(12, 12, 12)
-                        .addComponent(jTextField_comprobantePagoGastoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 144, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton_pagarGastoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel_idPresupuestoGastoDeuda)
-                        .addGap(90, 90, 90)))
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel_idPresupuestoGastoDeuda)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(jTextField_comprobantePagoGastoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 144, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jButton_pagarGastoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton_eliminarDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap(12, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
@@ -804,8 +849,10 @@ public class RegistroDeudas extends javax.swing.JFrame {
                     .addComponent(jLabel9)
                     .addComponent(jTextField_comprobantePagoGastoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton_pagarGastoDeuda)
-                    .addComponent(jLabel_idPresupuestoGastoDeuda))
-                .addContainerGap(24, Short.MAX_VALUE))
+                    .addComponent(jButton_eliminarDeuda))
+                .addGap(18, 18, 18)
+                .addComponent(jLabel_idPresupuestoGastoDeuda)
+                .addContainerGap(13, Short.MAX_VALUE))
         );
 
         jLabel_idPresupuestoDeudaPartida.setText("jLabel5");
@@ -814,19 +861,16 @@ public class RegistroDeudas extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(568, Short.MAX_VALUE)
+                .addComponent(jLabel_idPresupuestoDeudaPartida)
+                .addGap(201, 201, 201))
             .addGroup(layout.createSequentialGroup()
                 .addGap(18, 18, 18)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(16, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jLabel_idPresupuestoDeudaPartida)
-                        .addGap(201, 201, 201))))
+                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -835,9 +879,9 @@ public class RegistroDeudas extends javax.swing.JFrame {
                 .addComponent(jLabel_idPresupuestoDeudaPartida)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(20, 20, 20))
+                .addContainerGap())
         );
 
         pack();
@@ -867,19 +911,20 @@ public class RegistroDeudas extends javax.swing.JFrame {
         String verificacionvaloraPagar = jTextField_valoraPagar.getText().trim();
         String comprobante = jTextField_comprobantedePago.getText().trim();
         String idPresupuesto = jLabel_idPresupuestoDeudaPartida.getText().trim();
+        String ultimoPresup = consultarPresupuesto();
         //String idPresupuesto = 
 
         if (!descripcion.equals("") && !verificacionvaloraPagar.equals("") && !comprobante.equals("")) {
 
             //Verificamos que haya concepto de presupuesto para poder cargar en el el gasto            
-            if (VerificarConcepto(71, idPresupuesto)) {
+            if (VerificarConcepto(71, ultimoPresup)) {
 
                 //Verificamos si el valor excede el presupuesto
                 double valoraPagar = Double.parseDouble(jTextField_valoraPagar.getText().trim());
                 double valorDeuda = Math.abs(Double.parseDouble(MetodosGenerales.ConvertirMonedaAInt(jTextField_valorPartida.getText().trim())));
 //                System.out.println("Valor a pagar " + valoraPagar);
 //                System.out.println("Valor deuda " + valorDeuda);
-                String ultimoPresup = consultarPresupuesto();
+
                 //Todos los pagos de deuda requieren autorizacion
                 String estado = "Por Autorizar";
 
@@ -970,48 +1015,57 @@ public class RegistroDeudas extends javax.swing.JFrame {
         //Verificamos que se haya seleccionado una partida
         String idGastoDeuda = jTextField_idGastoDeuda.getText().trim();
         String descripcionGastoDeuda = jTextField_descripcionGastoDeuda.getText().trim();
-        String valorString = jTextField_valoraPagarGastoDeuda.getText().trim();        
+        String valorString = jTextField_valoraPagarGastoDeuda.getText().trim();
         String comprobantePagoGastoDeuda = jTextField_comprobantePagoGastoDeuda.getText().trim();
         //String presupuestoGastoDeuda = jLabel_idPresupuestoDeudaPartida.getText().trim();
 
         if (!descripcionGastoDeuda.equals("") && !valorString.equals("") && !comprobantePagoGastoDeuda.equals("")) {
-            
-            Double valorGastoDeuda = Math.abs(Double.parseDouble(MetodosGenerales.ConvertirMonedaAInt(jTextField_valorGastoDeuda.getText().trim())));
-            Double valoraPagarGastoDeuda = Double.parseDouble(jTextField_valoraPagarGastoDeuda.getText().trim());
-            
-            //Consultamos datos generales
+
+            //Consultamos la informacion de la deuda idoncepto, valor, descripcion
+            String[] infoDeuda = ConsultarInformacionDeuda(idGastoDeuda);
+            //Verificamos que el ultimo presupuesto a donde va a quedar cargado el pago tenga el idConcepto respectivo
             String ultimoPresup = consultarPresupuesto();
-            //String nombreUltimoPresup = ConsultarNombrePresup(ultimoPresup);
-            //String nombrePresupuestoGastoDeuda = ConsultarPresupGastoDeuda(presupuestoGastoDeuda);
-            String fecha = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-            //Todos los pagos de deuda requieren autorizacion
-            String estado = "Por Autorizar";
-            //Consultamos el idConcepto del gasto
-            //String idConcepto = ConsultarIdConcepto(idGastoDeuda);
 
-            //Verificamos si esta haciendo un pago parcial o total
-            if ((double) valoraPagarGastoDeuda <= (double) valorGastoDeuda) {
+            if (VerificarConcepto(Integer.parseInt(infoDeuda[0]), ultimoPresup)) {
 
-                //Consultamos la informacion de la deuda idoncepto, valor, descripcion
-                String[] infoDeuda = ConsultarInformacionDeuda(idGastoDeuda);
-                //Redefinimos el nombre de la deuda
-                infoDeuda[2] = "PAGO " + infoDeuda[2];
-                int opcion = JOptionPane.showConfirmDialog(this, "¿Desea cancelar la deuda?\n\n***Se registrará como un gasto en el ultimo presupuesto***"
-                        + "\n\n*** El gasto se registrará como: " + estado);
+                Double valorGastoDeuda = Math.abs(Double.parseDouble(MetodosGenerales.ConvertirMonedaAInt(jTextField_valorGastoDeuda.getText().trim())));
+                Double valoraPagarGastoDeuda = Double.parseDouble(jTextField_valoraPagarGastoDeuda.getText().trim());
 
-                if (opcion == 0) {
+                //Consultamos datos generales
+                //String nombreUltimoPresup = ConsultarNombrePresup(ultimoPresup);
+                //String nombrePresupuestoGastoDeuda = ConsultarPresupGastoDeuda(presupuestoGastoDeuda);
+                String fecha = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+                //Todos los pagos de deuda requieren autorizacion
+                String estado = "Por Autorizar";
+                //Consultamos el idConcepto del gasto
+                //String idConcepto = ConsultarIdConcepto(idGastoDeuda);
 
-                    RegistrarPagoGastoDeuda(fecha, ultimoPresup, infoDeuda[0], idGastoDeuda, valoraPagarGastoDeuda,
-                            infoDeuda[2], estado, comprobantePagoGastoDeuda, this.usuario);
-                    limpiarTablaGastosDeudad(modelo1);
-                    llenarTablaGastosDeudas();
-                    limpiarCampos();
+                //Verificamos si esta haciendo un pago parcial o total
+                if ((double) valoraPagarGastoDeuda <= (double) valorGastoDeuda) {
 
+                    //Redefinimos el nombre de la deuda
+                    infoDeuda[2] = "PAGO " + infoDeuda[2];
+                    int opcion = JOptionPane.showConfirmDialog(this, "¿Desea cancelar la deuda?\n\n***Se registrará como un gasto en el ultimo presupuesto***"
+                            + "\n\n*** El gasto se registrará como: " + estado);
+
+                    if (opcion == 0) {
+
+                        RegistrarPagoGastoDeuda(fecha, ultimoPresup, infoDeuda[0], idGastoDeuda, valoraPagarGastoDeuda,
+                                infoDeuda[2], estado, comprobantePagoGastoDeuda, this.usuario);
+                        limpiarTablaGastosDeudad(modelo1);
+                        llenarTablaGastosDeudas();
+                        limpiarCampos();
+
+                    } else {
+                        JOptionPane.showMessageDialog(this, "El pago no ha sido registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                    }
                 } else {
-                    JOptionPane.showMessageDialog(this, "El pago no ha sido registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "No es posible cancelar una deuda por un valor mayor al adeudado", "Error", JOptionPane.ERROR_MESSAGE);
                 }
+
             } else {
-                JOptionPane.showMessageDialog(this, "No es posible cancelar una deuda por un valor mayor al adeudado", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Dentro del presupuesto actual no fue cargado el concepto ***PAGOS PRESTAMOS***\n"
+                        + "Carguelo para poder cancelar el prestamo", usuario, HEIGHT);
             }
 
         } else {
@@ -1020,6 +1074,25 @@ public class RegistroDeudas extends javax.swing.JFrame {
         }
 
     }//GEN-LAST:event_jButton_pagarGastoDeudaActionPerformed
+
+    private void jButton_eliminarDeudaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_eliminarDeudaActionPerformed
+
+        //Verificamos que este seleccionado un gasto
+        String idDeuda = jTextField_idGastoDeuda.getText().trim();
+        if (!idDeuda.equals("")) {
+            //Verificamos que ese gasto no tenga abonos registrados
+            if (VerificarSiHayGasto(idDeuda)) {
+
+            } else {
+                JOptionPane.showMessageDialog(this, "No es posible eliminar la deuda ya que tiene abonos registrados", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+        } else {
+            JOptionPane.showMessageDialog(this, "Seleccione un gasto", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+        }
+
+
+    }//GEN-LAST:event_jButton_eliminarDeudaActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1058,6 +1131,7 @@ public class RegistroDeudas extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton_eliminarDeuda;
     private javax.swing.JButton jButton_pagarGastoDeuda;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

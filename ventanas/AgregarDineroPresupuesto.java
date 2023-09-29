@@ -599,17 +599,18 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
         try {
             Connection cn = Conexion.Conectar();
             PreparedStatement pst = cn.prepareStatement(consulta);
-            
+
             pst.setString(1, idPartida);
-            
+
             ResultSet rs = pst.executeQuery();
-            
+
             if (rs.next()) {
                 return false;
             }
-            
+
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this,"Error al consultar si la partida tiene gastos registrados ComprobarPagosPartida()", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error al consultar si la partida tiene gastos registrados ComprobarPagosPartida()", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
         return true;
     }
@@ -1120,33 +1121,39 @@ public class AgregarDineroPresupuesto extends javax.swing.JFrame {
         String partidaActual = jLabel_conceptpactual.getText().trim();
         String montoActual = jLabel_valoractual.getText().trim();
 
-        try {
-            String fecha = new SimpleDateFormat("yyyy-MM-dd").format(jDateChooser_fecha.getDate());
-            if (!idPartida.equals("") && !concepto.equals("") && !valor.equals("") && !fecha.equals("")) {
+        //Consultamos si tiene abonos realizados
+        if (ComprobarPagosPartida(idPartida)) {
 
-                int opcion = JOptionPane.showConfirmDialog(this, "¿Desea editar la partida?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
-                if (opcion == 0) {
-                    String razon = JOptionPane.showInputDialog(this, "Indique la razón por la que se va a eliminar la partida", "Informacion", JOptionPane.INFORMATION_MESSAGE);
-                    if (!razon.equals("")) {
-                        ActualizarPartida(idPartida, fecha, this.idPresupuesto, concepto, valor, presupuesto, fechaActual, partidaActual, montoActual, razon);
+            try {
+                String fecha = new SimpleDateFormat("yyyy-MM-dd").format(jDateChooser_fecha.getDate());
+                if (!idPartida.equals("") && !concepto.equals("") && !valor.equals("") && !fecha.equals("")) {
 
-                        limpiarCampos();
-                        limpiarTabla(modelo);
-                        llenarTabla();
-                    } else {
-                        JOptionPane.showMessageDialog(this, "Indique la razón por la que se va a eliminar la partida", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                    int opcion = JOptionPane.showConfirmDialog(this, "¿Desea editar la partida?", "Confirmacion", JOptionPane.INFORMATION_MESSAGE);
+                    if (opcion == 0) {
+                        String razon = JOptionPane.showInputDialog(this, "Indique la razón por la que se va a eliminar la partida", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                        if (!razon.equals("")) {
+                            ActualizarPartida(idPartida, fecha, this.idPresupuesto, concepto, valor, presupuesto, fechaActual, partidaActual, montoActual, razon);
+
+                            limpiarCampos();
+                            limpiarTabla(modelo);
+                            llenarTabla();
+                        } else {
+                            JOptionPane.showMessageDialog(this, "Indique la razón por la que se va a eliminar la partida", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                        }
                     }
-                }
 
-            } else {
-                JOptionPane.showMessageDialog(this, "Seleccione la partida a editar", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Seleccione la partida a editar", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+                }
+            } catch (NullPointerException ex) {
+                JOptionPane.showMessageDialog(this, "Fecha invalida", "Error", JOptionPane.ERROR_MESSAGE);
+                ex.printStackTrace();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al actualizar los datos de la partida", "Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
             }
-        } catch (NullPointerException ex) {
-            JOptionPane.showMessageDialog(this, "Fecha invalida", "Error", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al actualizar los datos de la partida", "Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+        } else {
+            JOptionPane.showMessageDialog(this, "No es posible editar la partida seleccionada ya que tiene abonos registrados", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
 
