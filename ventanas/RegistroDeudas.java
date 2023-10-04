@@ -8,6 +8,8 @@ package ventanas;
 import clases.Conexion;
 import clases.MetodosGenerales;
 import com.mysql.cj.jdbc.exceptions.MysqlDataTruncation;
+import java.awt.Frame;
+import static java.awt.Frame.getFrames;
 import java.awt.HeadlessException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
 import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -40,6 +43,7 @@ public class RegistroDeudas extends javax.swing.JFrame {
         initComponents();
         ConfiguracionGralJFrame();
         IniciarCaracteristicasGenerales();
+        calcularTotalDeuda();
     }
 
     public RegistroDeudas(String usuario, String permiso) {
@@ -52,6 +56,7 @@ public class RegistroDeudas extends javax.swing.JFrame {
         if (!permiso.equalsIgnoreCase("Gerente")) {
             jButton_eliminarDeuda.setEnabled(false);
         }
+        calcularTotalDeuda();
     }
 
     public void IniciarCaracteristicasGenerales() {
@@ -62,8 +67,30 @@ public class RegistroDeudas extends javax.swing.JFrame {
 
     }
 
-    public void InhabilitarSegunPermiso() {
-
+    public void calcularTotalDeuda(){
+        
+        jTextField_totalDeuda.setText("");
+        
+        //Verificamos que la tabla tenga datos
+        int numerofilas = jTable_partidas.getRowCount();
+        //Declaramos la variable que acumulara la suma
+        double suma = 0;
+        
+        if (numerofilas > 0) {
+            for (int i = 0; i < numerofilas; i++) {
+                suma += Math.abs(Integer.parseInt(MetodosGenerales.ConvertirMonedaAInt(jTable_partidas.getValueAt(i, 4).toString())));
+            }
+        } 
+        
+        int numerofilas2 = jTable_gastosDeudas.getRowCount();
+        if (numerofilas2 > 0) {
+            for (int i = 0; i < numerofilas2; i++) {
+                suma += Math.abs(Integer.parseInt(MetodosGenerales.ConvertirMonedaAInt(jTable_gastosDeudas.getValueAt(i, 4).toString())));
+            }
+        }
+        
+        jTextField_totalDeuda.setText(MetodosGenerales.ConvertirIntAMoneda(suma));
+        
     }
 
     public void llenarTablaGastosDeudas() {
@@ -183,7 +210,7 @@ public class RegistroDeudas extends javax.swing.JFrame {
         }
     }
 
-    public void limpiarTablaGastosDeudad(DefaultTableModel modelo1) {
+    public void limpiarTablaGastosDeudas(DefaultTableModel modelo1) {
         for (int i = 0; i < jTable_gastosDeudas.getRowCount(); i++) {
             modelo1.removeRow(i);
             i = i - 1;
@@ -496,6 +523,25 @@ public class RegistroDeudas extends javax.swing.JFrame {
         return null;
     }
 
+    public void EliminarDeuda(String idDeuda) {
+
+        String consulta = "delete from deudas where iddeuda=?";
+
+        Connection cn = Conexion.Conectar();
+
+        try {
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            pst.setString(1, idDeuda);
+            pst.executeQuery();
+            JOptionPane.showMessageDialog(this, "Deuda eliminada", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (HeadlessException | SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al eliminar la deuda EliminarDeuda()", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+
+    }
+
     public String[] ConsultarInformacionDeuda(String idGastoDeuda) {
 
         String consulta = "select idConcepto, valor, descripcion, factura, registradoPor from deudas where iddeuda=?";
@@ -602,6 +648,7 @@ public class RegistroDeudas extends javax.swing.JFrame {
         jTextField_comprobantedePago = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         jTextField_valoraPagar = new javax.swing.JTextField();
+        jButton_verAbonosPrestamos = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTable_gastosDeudas = new javax.swing.JTable();
@@ -617,7 +664,10 @@ public class RegistroDeudas extends javax.swing.JFrame {
         jButton_pagarGastoDeuda = new javax.swing.JButton();
         jLabel_idPresupuestoGastoDeuda = new javax.swing.JLabel();
         jButton_eliminarDeuda = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
         jLabel_idPresupuestoDeudaPartida = new javax.swing.JLabel();
+        jTextField_totalDeuda = new javax.swing.JTextField();
+        jLabel7 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -680,6 +730,13 @@ public class RegistroDeudas extends javax.swing.JFrame {
             }
         });
 
+        jButton_verAbonosPrestamos.setText("Ver abonos");
+        jButton_verAbonosPrestamos.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton_verAbonosPrestamosActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -687,18 +744,20 @@ public class RegistroDeudas extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 716, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGroup(jPanel1Layout.createSequentialGroup()
-                            .addComponent(jLabel1)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(jTextField_idDeudaPartida, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGap(18, 18, 18)
-                            .addComponent(jLabel2)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(jTextField_descripcionPrestamo)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                            .addComponent(jTextField_valorPartida, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jTextField_idDeudaPartida, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jTextField_descripcionPrestamo, javax.swing.GroupLayout.PREFERRED_SIZE, 348, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jTextField_valorPartida, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 760, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addContainerGap(16, Short.MAX_VALUE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -708,14 +767,16 @@ public class RegistroDeudas extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jTextField_comprobantedePago, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton_verAbonosPrestamos, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(122, 122, 122))))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
@@ -729,8 +790,9 @@ public class RegistroDeudas extends javax.swing.JFrame {
                     .addComponent(jLabel3)
                     .addComponent(jTextField_comprobantedePago, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4)
-                    .addComponent(jTextField_valoraPagar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jTextField_valoraPagar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton_verAbonosPrestamos))
+                .addContainerGap())
         );
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createEtchedBorder(), "Gastos adeudados", javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP));
@@ -777,6 +839,12 @@ public class RegistroDeudas extends javax.swing.JFrame {
 
         jLabel8.setText("Valor a pagar");
 
+        jTextField_valoraPagarGastoDeuda.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                jTextField_valoraPagarGastoDeudaKeyTyped(evt);
+            }
+        });
+
         jLabel9.setText("Comprobante de pago");
 
         jButton_pagarGastoDeuda.setText("Pagar");
@@ -795,14 +863,20 @@ public class RegistroDeudas extends javax.swing.JFrame {
             }
         });
 
+        jButton2.setText("Ver abonos");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 716, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                         .addComponent(jLabel5)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -812,30 +886,37 @@ public class RegistroDeudas extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jTextField_descripcionGastoDeuda)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jTextField_valorGastoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jTextField_valorGastoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 113, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(50, 50, 50))
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jLabel8)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jTextField_valoraPagarGastoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel9)
-                        .addGap(12, 12, 12)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel_idPresupuestoGastoDeuda)
                             .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(jLabel8)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jTextField_valoraPagarGastoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jLabel9)
+                                .addGap(12, 12, 12)
                                 .addComponent(jTextField_comprobantePagoGastoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 144, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jButton_pagarGastoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jButton_pagarGastoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton_eliminarDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addContainerGap(12, Short.MAX_VALUE))
+                                .addComponent(jButton2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton_eliminarDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 754, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(362, 362, 362)
+                .addComponent(jLabel_idPresupuestoGastoDeuda)
+                .addGap(0, 0, 0))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(15, 15, 15)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 172, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
                     .addComponent(jTextField_idGastoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -849,38 +930,50 @@ public class RegistroDeudas extends javax.swing.JFrame {
                     .addComponent(jLabel9)
                     .addComponent(jTextField_comprobantePagoGastoDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton_pagarGastoDeuda)
-                    .addComponent(jButton_eliminarDeuda))
-                .addGap(18, 18, 18)
-                .addComponent(jLabel_idPresupuestoGastoDeuda)
-                .addContainerGap(13, Short.MAX_VALUE))
+                    .addComponent(jButton_eliminarDeuda)
+                    .addComponent(jButton2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel_idPresupuestoGastoDeuda))
         );
 
         jLabel_idPresupuestoDeudaPartida.setText("jLabel5");
+
+        jTextField_totalDeuda.setEnabled(false);
+
+        jLabel7.setText("Total deuda");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(568, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel_idPresupuestoDeudaPartida)
-                .addGap(201, 201, 201))
+                .addGap(200, 200, 200))
             .addGroup(layout.createSequentialGroup()
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel7)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jTextField_totalDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(22, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabel_idPresupuestoDeudaPartida)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(10, 10, 10)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jTextField_totalDeuda, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel7))
                 .addContainerGap())
         );
 
@@ -943,6 +1036,7 @@ public class RegistroDeudas extends javax.swing.JFrame {
                         limpiarTablaPartidas(modelo);
                         llenarTablaPartidas();
                         limpiarCampos();
+                        calcularTotalDeuda();
 
                     } else {
                         JOptionPane.showMessageDialog(this, "El pago no ha sido registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
@@ -1052,9 +1146,10 @@ public class RegistroDeudas extends javax.swing.JFrame {
 
                         RegistrarPagoGastoDeuda(fecha, ultimoPresup, infoDeuda[0], idGastoDeuda, valoraPagarGastoDeuda,
                                 infoDeuda[2], estado, comprobantePagoGastoDeuda, this.usuario);
-                        limpiarTablaGastosDeudad(modelo1);
+                        limpiarTablaGastosDeudas(modelo1);
                         llenarTablaGastosDeudas();
                         limpiarCampos();
+                        calcularTotalDeuda();
 
                     } else {
                         JOptionPane.showMessageDialog(this, "El pago no ha sido registrado", "Informacion", JOptionPane.INFORMATION_MESSAGE);
@@ -1083,6 +1178,11 @@ public class RegistroDeudas extends javax.swing.JFrame {
             //Verificamos que ese gasto no tenga abonos registrados
             if (VerificarSiHayGasto(idDeuda)) {
 
+                EliminarDeuda(idDeuda);
+                limpiarCampos();
+                limpiarTablaGastosDeudas(modelo1);
+                llenarTablaGastosDeudas();
+
             } else {
                 JOptionPane.showMessageDialog(this, "No es posible eliminar la deuda ya que tiene abonos registrados", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -1093,6 +1193,82 @@ public class RegistroDeudas extends javax.swing.JFrame {
 
 
     }//GEN-LAST:event_jButton_eliminarDeudaActionPerformed
+
+    private void jTextField_valoraPagarGastoDeudaKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField_valoraPagarGastoDeudaKeyTyped
+        // TODO add your handling code here:
+        char c = evt.getKeyChar();
+
+        if (!Character.isDigit(c) && c != '.') {
+            evt.consume();
+        }
+
+        if (c == '0' && jTextField_valoraPagarGastoDeuda.getText().trim().length() == 0) {
+            evt.consume();
+        }
+
+        if (c == '.' && jTextField_valoraPagarGastoDeuda.getText().trim().length() == 0) {
+            evt.consume();
+        }
+
+        int contador = 0;
+
+        char[] cadena = jTextField_valoraPagarGastoDeuda.getText().trim().toCharArray();
+        for (int i = 0; i < jTextField_valoraPagarGastoDeuda.getText().trim().length(); i++) {
+            if (cadena[i] == '.') {
+                contador++;
+                break;
+            }
+        }
+
+        if (contador > 0 && c == '.') {
+            evt.consume();
+        }
+    }//GEN-LAST:event_jTextField_valoraPagarGastoDeudaKeyTyped
+
+    private void jButton_verAbonosPrestamosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_verAbonosPrestamosActionPerformed
+        // TODO add your handling code here:
+        Frame[] ventanas = getFrames();
+
+        for (Frame ventana : ventanas) {
+            if (ventana instanceof AbonosDeudas) {
+                ventana.dispose();
+            }
+        }
+
+        String idDeuda = jTextField_idDeudaPartida.getText().trim();
+
+        if (!idDeuda.equals("")) {
+            new AbonosDeudas(idDeuda, usuario, permiso).setVisible(true);
+        } else {
+            JOptionPane.showMessageDialog(this, "Seleccione una partida", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+        }
+
+
+    }//GEN-LAST:event_jButton_verAbonosPrestamosActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+        Frame[] ventanas = getFrames();
+
+        for (Frame ventana : ventanas) {
+            if (ventana instanceof AbonosDeudas) {
+                ventana.dispose();
+            }
+        }
+
+        String id = jTextField_idGastoDeuda.getText().trim();
+
+        if (!id.equals("")) {
+
+            int idDeuda = Integer.parseInt(jTextField_idGastoDeuda.getText().trim());
+            new AbonosDeudas(idDeuda, usuario, permiso).setVisible(true);
+
+        } else {
+            JOptionPane.showMessageDialog(this, "Seleccione una deuda", "Informacion", JOptionPane.INFORMATION_MESSAGE);
+        }
+
+
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -1131,14 +1307,17 @@ public class RegistroDeudas extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton_eliminarDeuda;
     private javax.swing.JButton jButton_pagarGastoDeuda;
+    private javax.swing.JButton jButton_verAbonosPrestamos;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JLabel jLabel_idPresupuestoDeudaPartida;
@@ -1155,6 +1334,7 @@ public class RegistroDeudas extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField_descripcionPrestamo;
     private javax.swing.JTextField jTextField_idDeudaPartida;
     private javax.swing.JTextField jTextField_idGastoDeuda;
+    private javax.swing.JTextField jTextField_totalDeuda;
     private javax.swing.JTextField jTextField_valorGastoDeuda;
     private javax.swing.JTextField jTextField_valorPartida;
     private javax.swing.JTextField jTextField_valoraPagar;

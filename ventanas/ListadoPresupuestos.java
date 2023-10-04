@@ -2155,7 +2155,7 @@ public final class ListadoPresupuestos extends javax.swing.JFrame {
         Frame[] ventanas = getFrames();
 
         for (Frame ventana : ventanas) {
-            if (ventana instanceof RegistroDeudas) {
+            if (ventana instanceof RegistroDeudas  || ventana instanceof RegistrarGastosPresupuesto) {
                 ventana.dispose();
             }
         }
