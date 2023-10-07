@@ -311,8 +311,8 @@ public class MetodosGenerales {
 
         String remitente = "infograficasjireh@gmail.com";
         String contraseña = "enuupmhmgcebjubf";
-        String destinatario = "eperez.alean@gmail.com";
-        //String destinatario = "infograficasjireh@gmail.com";
+        //String destinatario = "eperez.alean@gmail.com";
+        String destinatario = "infograficasjireh@gmail.com";
 
         Properties p = new Properties();
         p.put("mail.smtp.host", "smtp.gmail.com");
@@ -341,8 +341,8 @@ public class MetodosGenerales {
 
         String remitente = "infograficasjireh@gmail.com";
         String contraseña = "enuupmhmgcebjubf";
-        String destinatario = "eperez.alean@gmail.com";
-        //String destinatario = "infograficasjireh@gmail.com";
+        //String destinatario = "eperez.alean@gmail.com";
+        String destinatario = "infograficasjireh@gmail.com";
         
         Properties p = new Properties();
         p.put("mail.smtp.host", "smtp.gmail.com");
