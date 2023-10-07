@@ -7,6 +7,8 @@ package ventanas;
 
 import clases.Conexion;
 import com.mysql.cj.jdbc.exceptions.MysqlDataTruncation;
+import java.awt.Frame;
+import static java.awt.Frame.getFrames;
 import java.awt.HeadlessException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -93,7 +95,7 @@ public class DatosGenerales extends javax.swing.JFrame {
             }
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error en leer el listado de papeles DatosGenerales LlenarComboBoxPapeles()","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error en leer el listado de papeles DatosGenerales LlenarComboBoxPapeles()", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
     }
@@ -119,7 +121,7 @@ public class DatosGenerales extends javax.swing.JFrame {
             }
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error en leer el listado de comisionistas DatosGenerales LlenarComboBoxVendedores()","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error en leer el listado de comisionistas DatosGenerales LlenarComboBoxVendedores()", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
     }
@@ -145,7 +147,7 @@ public class DatosGenerales extends javax.swing.JFrame {
             }
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error en leer el listado de comisionistas DatosGenerales LlenarComboBoxVendedores()","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error en leer el listado de comisionistas DatosGenerales LlenarComboBoxVendedores()", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
     }
@@ -165,7 +167,7 @@ public class DatosGenerales extends javax.swing.JFrame {
             }
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error en leer el listado de tipo de gastos DatosGenerales llenarComboBoxTipoGastos()","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error en leer el listado de tipo de gastos DatosGenerales llenarComboBoxTipoGastos()", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
     }
@@ -185,7 +187,7 @@ public class DatosGenerales extends javax.swing.JFrame {
             }
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error en leer el listado de tipos de rubro DatosGenerales llenarComboBoxTipoRubro()","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error en leer el listado de tipos de rubro DatosGenerales llenarComboBoxTipoRubro()", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
     }
@@ -205,7 +207,7 @@ public class DatosGenerales extends javax.swing.JFrame {
             }
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error en leer el listado de tipos de modalidad DatosGenerales llenarComboBoxTipoModalidad()","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error en leer el listado de tipos de modalidad DatosGenerales llenarComboBoxTipoModalidad()", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
     }
@@ -245,7 +247,7 @@ public class DatosGenerales extends javax.swing.JFrame {
             }
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error en leer el listado de conceptos DatosGenerales llenarComboBoxConceptos()","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error en leer el listado de conceptos DatosGenerales llenarComboBoxConceptos()", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
     }
@@ -277,7 +279,7 @@ public class DatosGenerales extends javax.swing.JFrame {
             }
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error en leer el listado de papeles DatosGenerales VerificarPapel()","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error en leer el listado de papeles DatosGenerales VerificarPapel()", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
         return existe;
@@ -310,7 +312,7 @@ public class DatosGenerales extends javax.swing.JFrame {
             }
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error en leer el listado de vendedores DatosGenerales VerificarComisionista()","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error en leer el listado de vendedores DatosGenerales VerificarComisionista()", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
         return existe;
@@ -343,7 +345,7 @@ public class DatosGenerales extends javax.swing.JFrame {
             }
 
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error en leer el listado de tipos de trabajo DatosGenerales VerificarTipoTrabajo()","Error",JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Error en leer el listado de tipos de trabajo DatosGenerales VerificarTipoTrabajo()", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
         return existe;
@@ -455,11 +457,10 @@ public class DatosGenerales extends javax.swing.JFrame {
 
             pst.executeUpdate();
             JOptionPane.showMessageDialog(this, "Rubro de gasto registrado");
-        
-        
+
         } catch (MysqlDataTruncation e) {
             JOptionPane.showMessageDialog(this, "Error."
-                    + "\nAlgunos de los datos que intenta ingresar son demasiado extensos.\nIntente acortar los textos o no registrar numeros muy grande no logicos","Error",JOptionPane.ERROR_MESSAGE);
+                    + "\nAlgunos de los datos que intenta ingresar son demasiado extensos.\nIntente acortar los textos o no registrar numeros muy grande no logicos", "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         } catch (SQLIntegrityConstraintViolationException ex) {
             JOptionPane.showMessageDialog(this, "El gasto que intenta ingresar ya se encuentra registrado en la base de datos", "Error", JOptionPane.ERROR_MESSAGE);
@@ -754,6 +755,11 @@ public class DatosGenerales extends javax.swing.JFrame {
         });
 
         jButton1.setText("Ver conceptos");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -1018,6 +1024,20 @@ public class DatosGenerales extends javax.swing.JFrame {
             evt.consume();
         }
     }//GEN-LAST:event_jTextField_valorKeyTyped
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+
+        Frame[] ventanas = getFrames();
+
+        for (Frame ventana : ventanas) {
+            if (ventana instanceof ActualizarValorConceptos) {
+                ventana.dispose();
+            }
+        }
+
+        new ActualizarValorConceptos(usuario, permiso).setVisible(true);
+
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments

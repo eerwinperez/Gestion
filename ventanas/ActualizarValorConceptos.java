@@ -11,8 +11,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
+import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
@@ -33,6 +35,7 @@ public class ActualizarValorConceptos extends javax.swing.JFrame {
     public ActualizarValorConceptos() {
         initComponents();
         IniciarCaracteristicasGenerales();
+        
     }
 
     public ActualizarValorConceptos(String usuario, String permiso) {
@@ -40,6 +43,12 @@ public class ActualizarValorConceptos extends javax.swing.JFrame {
         this.permiso = permiso;
         initComponents();
         IniciarCaracteristicasGenerales();
+        ConfiguracionGralJFrame();
+        
+        if (!permiso.equalsIgnoreCase("Gerente")) {
+            jButton1.setEnabled(false);
+        }
+        
     }
 
     public void IniciarCaracteristicasGenerales() {
@@ -140,6 +149,19 @@ public class ActualizarValorConceptos extends javax.swing.JFrame {
             e.printStackTrace();
         }
         
+    }
+    public void ConfiguracionGralJFrame() {
+        //Cambiar Icono Jframe
+        setIconImage(new ImageIcon(getClass().getResource("/Imagenes/Icono.png")).getImage());
+        //Titulo
+        setTitle("Valores maestros presupuestados *** " + "Usuario: " + usuario + " - " + permiso);
+        //Localizacion del JFram (Centrado)
+        setLocationRelativeTo(null);
+        //Tamaño fijo
+        setResizable(false);
+        //Al cerrar solo se cierra esta ventana, no las precedentes
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+
     }
 
     /**
