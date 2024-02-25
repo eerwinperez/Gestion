@@ -296,7 +296,7 @@ public class RegistroVentas extends javax.swing.JFrame {
             String tipo, double unitario, double precioVentaParseado, String tamaño, String fechaEntrega, String color,
             String numeroinicial, String numerofinal, String acabado, String papeloriginal, String copia1, String copia2,
             String copia3, String observaciones, int aleatorio, String registradoPor, String tipoVenta,
-            String valorAbono, String observacionesAbono, String clasificacion) {
+            String valorAbono, String observacionesAbono, String clasificacion, String presupuesto) {
 
         String insertVenta = "INSERT INTO ventas (Idventa, Vendedor, FechaventaSistema, Idcliente, Cantidad, "
                 + "descripcionTrabajo, tipoTrabajo, unitario, precio, tamaño, fechaEntrega, colorTinta, "
@@ -304,8 +304,10 @@ public class RegistroVentas extends javax.swing.JFrame {
                 + "observaciones, registradoPor, tipoVenta, clasificacion) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
+        
+        
         String insertAbono = "insert into abonos (idVenta, valor, fecha, observaciones, "
-                + "registradoPor) values (?, ?, ?, ?, ?)";
+                + "registradoPor, presupuesto) values (?, ?, ?, ?, ?, ?)";
 
         Connection cn = Conexion.Conectar();
 
@@ -353,6 +355,7 @@ public class RegistroVentas extends javax.swing.JFrame {
             pst2.setString(3, fechaSistema);
             pst2.setString(4, observacionesAbono);
             pst2.setString(5, registradoPor);
+            pst2.setString(6, presupuesto);
             pst2.executeUpdate();
 
             cn.commit();
@@ -634,6 +637,28 @@ public class RegistroVentas extends javax.swing.JFrame {
             e.printStackTrace();
         }
 
+    }
+    
+    public String consultarPresupuesto() {
+        String consulta = "select max(idPresupuesto) as presup from presupuestos";
+
+        Connection cn = Conexion.Conectar();
+        try {
+
+            PreparedStatement pst = cn.prepareStatement(consulta);
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                return rs.getString("presup");
+            }
+
+            cn.close();
+            
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al consultar el presupuesto en la base de datos", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+        
+        return null;
     }
 
     public void CargarDatosListaPrecios(String idPedidoLista) {
@@ -1154,6 +1179,8 @@ public class RegistroVentas extends javax.swing.JFrame {
             double precioVentaParseado = Double.parseDouble(precioVenta);
             double unitario = precioVentaParseado / cantidadParseada;
 
+            String presupuesto = consultarPresupuesto();
+            
             //Consultamos el tipo de cliente así determinamos si es requisito el abono o no
             String cliente = jLabel_cliente.getText().trim();
             //String tipoCliente = jLabel_tipoCliente.getText().trim();
@@ -1172,7 +1199,7 @@ public class RegistroVentas extends javax.swing.JFrame {
                                 String fechaEntrega = new SimpleDateFormat("yyyy-MM-dd").format(jDateChooser_fechaentrega.getDate());
                                 RegistrarVentaConAbono(vendedor, fechaSistema, idCliente, cantidadParseada, descripcion, tipo, unitario, precioVentaParseado,
                                         tamaño, fechaEntrega, color, numeroinicial, numerofinal, acabado, papeloriginal, copia1, copia2,
-                                        copia3, observaciones, aleatorio, this.usuario, tipoVenta, abono, observacionAbono, clasificacion);
+                                        copia3, observaciones, aleatorio, this.usuario, tipoVenta, abono, observacionAbono, clasificacion, presupuesto);
                                 dispose();
                                 new ListadoAbonosEntradasDiarias(this.usuario, this.permiso).setVisible(true);
 
